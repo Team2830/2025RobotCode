@@ -12,8 +12,11 @@ import com.ctre.phoenix6.Utils;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import au.grapplerobotics.CanBridge;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -23,9 +26,13 @@ public class Robot extends TimedRobot {
   private final boolean kUseVision = false;
 
   private final Vision m_Vision = new Vision();
+  private Field2d m_field = new Field2d();
 
   public Robot() {
+    CanBridge.runTCP();
     m_robotContainer = new RobotContainer();
+
+    SmartDashboard.putData("Field", m_field);
   }
 
   @Override
@@ -39,7 +46,8 @@ public class Robot extends TimedRobot {
         Optional<EstimatedRobotPose> estimatedPose = m_Vision.getEstimatedGlobalPose(lastPose.get());
 
         if(estimatedPose.isPresent()) {
-          m_robotContainer.drivetrain.addVisionMeasurement(estimatedPose.get().estimatedPose.toPose2d(), estimatedPose.get().timestampSeconds);
+          // add back once this works: m_robotContainer.drivetrain.addVisionMeasurement(estimatedPose.get().estimatedPose.toPose2d(), estimatedPose.get().timestampSeconds);
+          m_field.setRobotPose(estimatedPose.get().estimatedPose.toPose2d());
         }
       }
     }
