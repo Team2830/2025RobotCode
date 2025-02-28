@@ -24,15 +24,15 @@ public class AlgaeArm extends SubsystemBase {
 
   /** Creates a new AlgaeArm. */
   public AlgaeArm() {
-    SparkBaseConfig config = new SparkMaxConfig();
+    //SparkBaseConfig config = new SparkMaxConfig();
 
-    config.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder).p(0.01);
+    //config.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder).p(0.01);
 
-    angleMotor.configure(config, com.revrobotics.spark.SparkBase.ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+    //angleMotor.configure(config, com.revrobotics.spark.SparkBase.ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
   }
 
   public void setangle(double angle) {
-    angleMotor.getClosedLoopController().setReference(angle, ControlType.kPosition);
+    angleMotor.setVoltage(angle);
   }
 
   public void setWheelSpeed(double speed) {

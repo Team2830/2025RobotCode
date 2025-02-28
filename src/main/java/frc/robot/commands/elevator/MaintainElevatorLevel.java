@@ -34,6 +34,6 @@ public class MaintainElevatorLevel extends Command {
 
   @Override
   public boolean isFinished() {
-    return false;
+    return true;
   }
 }

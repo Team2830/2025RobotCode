@@ -120,12 +120,12 @@ public class Elevator extends SubsystemBase {
     // negative rotations will make the elevator carridge travel down.
     switch(currentLevel){
       case 1:
-        if(m_RightMotorDriver.getPosition().getValueAsDouble() < 1.0) {
-          m_RightMotorDriver.set(0);
+        if(m_RightMotorDriver.getPosition().getValueAsDouble() * Constants.Elevator.inchesPerRot < 3.5) {
+          m_RightMotorDriver.setVoltage(0);
+          m_RightMotorDriver.setPosition(0);
         } else {
           m_RightMotorDriver.setControl(m_mmReq.withPosition(inchesToRotations(Constants.Elevator.l1Height)).withSlot(0));
         }
-        
         break;
       case 2:
         m_RightMotorDriver.setControl(m_mmReq.withPosition(inchesToRotations(Constants.Elevator.l2Height)).withSlot(0));

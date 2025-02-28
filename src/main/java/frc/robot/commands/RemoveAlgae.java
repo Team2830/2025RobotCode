@@ -25,15 +25,15 @@ public class RemoveAlgae extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    algaeArm.setangle(90);
+    algaeArm.setangle(-1.7);
     algaeArm.setWheelSpeed(1.0);
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    algaeArm.setangle(0);
-    algaeArm.setWheelSpeed(0.0);
+    //algaeArm.setangle(0);
+    //algaeArm.setWheelSpeed(0.0);
   }
 
   // Returns true when the command should end.

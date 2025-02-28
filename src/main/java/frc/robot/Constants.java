@@ -3,7 +3,7 @@ package frc.robot;
 public class Constants {
     public static final class Swerve {
         // Routine to Apply for sysID (0 - translation; 1 - steer; 2 - rotation)
-        public static final int RoutineToApplySysID = 0;
+        public static final int RoutineToApplySysID = 2;
 
         // CAN IDs
         public static final int kPidgeonID = 13;
@@ -78,18 +78,18 @@ public class Constants {
         public static final double kWheelRadius = 2; // in inches
 
         // steer motor gains
-        public static final double steerKP = 80; // 60
-        public static final double steerKI = 0.1; // 0.1
-        public static final double steerKD = 0.6; // 1.4
+        public static final double steerKP = 17; // 17
+        public static final double steerKI = 0.005; // 0.005
+        public static final double steerKD = 0.05; // 0.05
         public static final double steerKS = 0.18328;
         public static final double steerKV = 0.1069225;
         public static final double steerKA = 0.002041125;
 
         // drive motor gains
-        public static final double driveKP = 0.010;
+        public static final double driveKP = 0.01;
         public static final double driveKI = 0.000;
         public static final double driveKD = 0.000;
-        public static final double driveKS = 0.0860;
+        public static final double driveKS = 0.200;
         public static final double driveKV = 0.0134;
     }
 

@@ -38,8 +38,9 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
-
+    m_Vision.debugVision();
     if(kUseVision) {
+      /**
       Optional<Pose2d> lastPose = m_robotContainer.drivetrain.samplePoseAt(Utils.getCurrentTimeSeconds());
 
       if(lastPose.isPresent()) {
@@ -50,6 +51,8 @@ public class Robot extends TimedRobot {
           m_field.setRobotPose(estimatedPose.get().estimatedPose.toPose2d());
         }
       }
+      **/
+      SmartDashboard.putNumber("Rot to Apriltag", m_Vision.getRobotCentricRotToTarget());
     }
   }
 

@@ -17,6 +17,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -28,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commands.DisableAlgae;
 import frc.robot.commands.RemoveAlgae;
 import frc.robot.commands.StoreAlgae;
 import frc.robot.commands.elevator.KeepElevatorPosition;
@@ -61,8 +63,14 @@ public class RobotContainer {
 
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
-    private final SwerveRequest.FieldCentricFacingAngle faceAngle = new SwerveRequest.FieldCentricFacingAngle();
+
+     private final ProfiledFieldCentricFacingAngle drivetrainTargetAngle =
+        new ProfiledFieldCentricFacingAngle(new TrapezoidProfile.Constraints(MaxAngularRate, MaxAngularRate / 0.25))
+            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+
     
+
     private static final Rotation2d angle_LeftCloseReef = Rotation2d.fromDegrees(60);
     private static final Rotation2d angle_MiddleCloseReef = Rotation2d.fromDegrees(0);
     private static final Rotation2d angle_RightCloseReef = Rotation2d.fromDegrees(300);
@@ -102,16 +110,14 @@ public class RobotContainer {
     private final SendableChooser<Command> autoChooser;
 
     public RobotContainer() {
-        
-        autoChooser = AutoBuilder.buildAutoChooser("New Auto");
-        SmartDashboard.putData("Auto Mode", autoChooser);
-        
         angle_Limiter = new SlewRateLimiter(Constants.Swerve.joystickSlewLimiter_angle);
         x_Limiter = new SlewRateLimiter(Constants.Swerve.joystickSlewLimiter_xy);
         y_Limiter = new SlewRateLimiter(Constants.Swerve.joystickSlewLimiter_xy);
 
         leftTrigger = new Trigger(() -> operatorJoystick.getLeftTriggerAxis() > 0.2);
         rightTrigger = new Trigger(() -> operatorJoystick.getRightTriggerAxis() > 0.2);
+
+        configureBindings();
 
         NamedCommands.registerCommand("Shoot", new Shoot(manipulator));
         NamedCommands.registerCommand("Intake", new Intake(manipulator));
@@ -121,17 +127,24 @@ public class RobotContainer {
         NamedCommands.registerCommand("L2", new SetElevatorLevel(elevator, 2)); 
         NamedCommands.registerCommand("L3", new SetElevatorLevel(elevator, 3)); 
         NamedCommands.registerCommand("L4", new SetElevatorLevel(elevator, 4)); 
+        NamedCommands.registerCommand("Maintain Level", new MaintainElevatorLevel(elevator));
 
-        configureBindings();
+        autoChooser = AutoBuilder.buildAutoChooser("New Auto");
+        SmartDashboard.putData("Auto Mode", autoChooser);
+        
+        
     }
 
     private void configureBindings() {
         SignalLogger.setPath("/media/sda1/ctre-logs/");
         //////////////////////////////////////// Manipulator Controls (Operator Joystick) //////////////////////////////////////////////
         operatorJoystick.leftBumper().onTrue(new Intake(manipulator).andThen(new BackCoralToSensor(manipulator)) );
-        operatorJoystick.rightBumper().onTrue(new Shoot(manipulator) );
-        operatorJoystick.start().whileTrue(new ShooterReverse(manipulator));
-        
+        operatorJoystick.rightBumper().or(joystick.rightTrigger()).onTrue(new Shoot(manipulator) );
+        //operatorJoystick.start().whileTrue(new ShooterReverse(manipulator));
+  
+        rightTrigger.whileTrue(new RemoveAlgae(algaeArm));
+        leftTrigger.whileTrue(new StoreAlgae(algaeArm));
+        algaeArm.setDefaultCommand(new DisableAlgae(algaeArm));
         //////////////////////////////////////// Elevator Controls (Operator Joystick) //////////////////////////////////////////////
         switch(Constants.Elevator.elevatorMode) {
             case 1: 
@@ -165,31 +178,34 @@ public class RobotContainer {
                 operatorJoystick.b().onTrue(new SetElevatorLevel(elevator, 2));
                 operatorJoystick.x().onTrue(new SetElevatorLevel(elevator, 3));
                 operatorJoystick.y().onTrue(new SetElevatorLevel(elevator, 4));
-                operatorJoystick.back().whileTrue(new ManualElevator(elevator, operatorJoystick::getLeftY));
+                operatorJoystick.back().whileTrue(new ManualElevator(elevator, () -> (operatorJoystick.getRightY() * -0.25)));
                 break;
         }
         
-        leftTrigger.onTrue(new StoreAlgae(algaeArm));
-        rightTrigger.onTrue(new RemoveAlgae(algaeArm));
-
         ////////////////////////////////////////// Swerve Controls (Driver Joystick) ////////////////////////////////////////////////
+        joystick.start().onTrue(new InstantCommand(drivetrain::resetFieldOriented, drivetrain));
+        // joystick.start().whileTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        joystick.back().whileTrue(drivetrain.applyRequest(() -> brake));                       
+        
+        // Default Drive Mode is Field Centric
         drivetrain.setDefaultCommand(
-            // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
                 drive.withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed) // Drive forward with negative Y (forward)
                     .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) // Drive left with negative X (left)
                     .withRotationalRate(-angle_Limiter.calculate(joystick.getRightX()) * MaxAngularRate) // Drive counterclockwise with negative X (left)
-            )
+                    )
         );
 
+        // Slow Mode (Field Centric) While Right Bumper Held
         joystick.rightBumper().whileTrue(
             drivetrain.applyRequest(() ->
                 drive.withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed * 0.3) // Drive forward with negative Y (forward)
                     .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed * 0.3) // Drive left with negative X (left)
                     .withRotationalRate(-angle_Limiter.calculate(joystick.getRightX()) * MaxAngularRate * 0.3) // Drive counterclockwise with negative X (left)
-            )
+            ) 
         );
 
+        // Slow Mode (Robot Centric) While Left Bumper Held
         joystick.leftBumper().whileTrue(
             drivetrain.applyRequest(() ->
                 driveRobotCentric.withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed * 0.3) // Drive forward with negative Y (forward)
@@ -198,53 +214,57 @@ public class RobotContainer {
             )
         );
 
-        joystick.start().onTrue(new InstantCommand(drivetrain::resetFieldOriented, drivetrain));
-
-        joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        joystick.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
-        ));
-
-        joystick.pov(0).whileTrue(drivetrain.applyRequest(() ->
-            forwardStraight.withVelocityX(0.5).withVelocityY(0))
-        );
-        joystick.pov(180).whileTrue(drivetrain.applyRequest(() ->
-            forwardStraight.withVelocityX(-0.5).withVelocityY(0))
-        );
-
+        // SysID Commands
+        /**
         joystick.leftBumper().and(joystick.start()).onTrue(Commands.runOnce(SignalLogger::start));
         joystick.rightBumper().and(joystick.start()).onTrue(Commands.runOnce(SignalLogger::stop));
-
-        // Run SysId routines when holding back/start and X/Y.
-        // Note that each routine should be run exactly once in a single log.
-        joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-        joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-
-        joystick.x().and(joystick.a().debounce(0.15)).onTrue(
-            drivetrain.applyRequest(() -> faceAngle.withTargetDirection(angle_LeftCloseReef))
+        drivetrain.registerTelemetry(logger::telemeterize);
+        joystick.povUp().whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward)); // First
+        joystick.povDown().whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse)); // Second
+        joystick.povLeft().whileTrue(drivetrain.sysIdDynamic(Direction.kForward));     // Third
+        joystick.povRight().whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));    // Fourth
+        **/
+        
+        // Hold A/B/X/Y Combination to translate with a target rotational angle corresponding to a side of the reef
+        joystick.x().and(joystick.a().debounce(0.15)).whileTrue(
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_LeftCloseReef)
+                        .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
+                        .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
+            )
         );
-        joystick.a().onTrue(
-            drivetrain.applyRequest(() -> faceAngle.withTargetDirection(angle_MiddleCloseReef))
+        joystick.a().whileTrue(
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_MiddleCloseReef)
+                          .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
+                          .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
+            )
         );
-        joystick.a().and(joystick.b().debounce(0.15)).onTrue(
-            drivetrain.applyRequest(() -> faceAngle.withTargetDirection(angle_RightCloseReef))
+        joystick.a().and(joystick.b().debounce(0.15)).whileTrue(
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_RightCloseReef)
+                         .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
+                         .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
+            )
         );
-        joystick.x().and(joystick.b()).debounce(0.15).onTrue(
-            drivetrain.applyRequest(() -> faceAngle.withTargetDirection(angle_LeftFarReef))
+        joystick.y().and(joystick.x()).debounce(0.15).whileTrue(
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_LeftFarReef)
+                      .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
+                      .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
+            )
         );
-        joystick.y().onTrue(
-            drivetrain.applyRequest(() -> faceAngle.withTargetDirection(angle_MiddleFarReef))
-        );
-        joystick.y().and(joystick.b().debounce(0.15)).onTrue(
-            drivetrain.applyRequest(() -> faceAngle.withTargetDirection(angle_RightFarReef))
+        joystick.y().whileTrue(
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_MiddleFarReef)
+                        .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
+                        .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
+            )
         );
         
-        // reset the field-centric heading on left bumper press
-        joystick.a().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        joystick.y().and(joystick.b().debounce(0.15)).whileTrue(
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_RightFarReef)
+                       .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
+                       .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
+            )
+        );
 
-        drivetrain.registerTelemetry(logger::telemeterize);
+        
     }
 
     public Command getAutonomousCommand() {

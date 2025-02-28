@@ -11,13 +11,13 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "BlueTopLeftReefPath"
+                  "pathName": "RedTopRightReefPath"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "L4"
+                  "name": "L3"
                 }
               }
             ]
@@ -32,7 +32,7 @@
       ]
     }
   },
-  "resetOdom": false,
+  "resetOdom": true,
   "folder": null,
   "choreoAuto": false
 }
