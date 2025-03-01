@@ -23,7 +23,7 @@ public class Robot extends TimedRobot {
 
   private final RobotContainer m_robotContainer;
 
-  private final boolean kUseVision = false;
+  private final boolean kUseVision = true;
 
   private final Vision m_Vision = new Vision();
   private Field2d m_field = new Field2d();

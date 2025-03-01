@@ -71,16 +71,16 @@ public class RobotContainer {
 
     
 
-    private static final Rotation2d angle_LeftCloseReef = Rotation2d.fromDegrees(60);
-    private static final Rotation2d angle_MiddleCloseReef = Rotation2d.fromDegrees(0);
-    private static final Rotation2d angle_RightCloseReef = Rotation2d.fromDegrees(300);
+    private static final Rotation2d angle_LeftCloseReef = Rotation2d.fromDegrees(120);
+    private static final Rotation2d angle_MiddleCloseReef = Rotation2d.fromDegrees(180);
+    private static final Rotation2d angle_RightCloseReef = Rotation2d.fromDegrees(-120);
 
-    private static final Rotation2d angle_LeftFarReef = Rotation2d.fromDegrees(120);
-    private static final Rotation2d angle_MiddleFarReef = Rotation2d.fromDegrees(180);
-    private static final Rotation2d angle_RightFarReef = Rotation2d.fromDegrees(240);
+    private static final Rotation2d angle_LeftFarReef = Rotation2d.fromDegrees(60);
+    private static final Rotation2d angle_MiddleFarReef = Rotation2d.fromDegrees(0);
+    private static final Rotation2d angle_RightFarReef = Rotation2d.fromDegrees(-60);
 
-    private static final Rotation2d angle_LeftCoralStation = Rotation2d.fromDegrees(240);
-    private static final Rotation2d angle_RightCoralStation= Rotation2d.fromDegrees(150);
+    private static final Rotation2d angle_LeftCoralStation = Rotation2d.fromDegrees(150);
+    private static final Rotation2d angle_RightCoralStation= Rotation2d.fromDegrees(240);
 
 
 
@@ -261,6 +261,21 @@ public class RobotContainer {
             drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_RightFarReef)
                        .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                        .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
+            )
+
+        );
+        /////////////////////////////// loading station alignment /////////////////////////
+        joystick.x().whileTrue(
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_LeftCoralStation)
+            .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
+            .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
+            )
+        );
+
+        joystick.b().whileTrue(
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_RightCoralStation)
+                        .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
+                        .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
             )
         );
 

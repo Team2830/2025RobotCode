@@ -30,17 +30,18 @@ private Vision m_Vision;
     double ySpeed;
     double xSpeed;
 
+    /**
     if(yaw>0){//update yaw value
-        // ySpeed=             -- EO commenting to get working commit
+        ySpeed=
     }
 
-    // EO commenting to get working commit
-
-    // m_drivetrain.applyRequest(() ->
-    //     m_driveRobotCentric.withVelocityX(xSpeed)
-    //         .withVelocityY(ySpeed)
-    //         .withRotationalRate(null)
-    // );
+    m_drivetrain.applyRequest(() ->
+        m_driveRobotCentric.withVelocityX(xSpeed)
+            .withVelocityY(ySpeed)
+            .withRotationalRate(null)
+    );
+    **/ 
+    
 
 }
 

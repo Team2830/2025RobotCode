@@ -39,6 +39,7 @@ public class ProfiledFieldCentricFacingAngle implements SwerveRequest {
     public ForwardPerspectiveValue ForwardPerspective = ForwardPerspectiveValue.OperatorPerspective;
     private final FieldCentricFacingAngle m_fieldCentricFacingAngle = new FieldCentricFacingAngle();
     public final PhoenixPIDController HeadingController = m_fieldCentricFacingAngle.HeadingController;
+     
 
     private final TrapezoidProfile profile;
     private TrapezoidProfile.State setpoint = new TrapezoidProfile.State();
@@ -46,6 +47,7 @@ public class ProfiledFieldCentricFacingAngle implements SwerveRequest {
 
     public ProfiledFieldCentricFacingAngle(TrapezoidProfile.Constraints constraints) {
         profile = new TrapezoidProfile(constraints);
+        HeadingController.setPID(0.4, 0, 0);
     }
 
     public StatusCode apply(SwerveControlParameters parameters, SwerveModule... modulesToApply) {

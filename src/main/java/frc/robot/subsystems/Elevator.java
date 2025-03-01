@@ -17,6 +17,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -63,6 +64,8 @@ public class Elevator extends SubsystemBase {
     for (int i = 0; i < 5; ++i) {
       statusRight = m_RightMotorDriver.getConfigurator().apply(cfg);
       statusLeft = m_LeftMotorFollower.getConfigurator().apply(cfg);
+      m_LeftMotorFollower.setNeutralMode(NeutralModeValue.Brake);
+      m_RightMotorDriver.setNeutralMode(NeutralModeValue.Brake);
       if (statusLeft.isOK() && statusRight.isOK()) break;
     }
     if (!statusRight.isOK()) {
