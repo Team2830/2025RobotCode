@@ -32,6 +32,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DisableAlgae;
 import frc.robot.commands.RemoveAlgae;
 import frc.robot.commands.StoreAlgae;
+import frc.robot.commands.drive.ReefCenterer;
 import frc.robot.commands.elevator.KeepElevatorPosition;
 import frc.robot.commands.elevator.MaintainElevatorLevel;
 import frc.robot.commands.elevator.MaintainElevatorVoltage;
@@ -105,6 +106,8 @@ public class RobotContainer {
     private Trigger leftTrigger;
     private Trigger rightTrigger;
     private AlgaeArm algaeArm = new AlgaeArm();
+
+    private Vision m_Vision = new Vision();
 
     /* Path follower */
     private final SendableChooser<Command> autoChooser;
@@ -213,6 +216,9 @@ public class RobotContainer {
                     .withRotationalRate(-angle_Limiter.calculate(joystick.getRightX()) * MaxAngularRate * 0.3) // Drive counterclockwise with negative X (left)
             )
         );
+
+        joystick.povLeft().whileTrue(new ReefCenterer(drivetrain, driveRobotCentric, m_Vision, Vision.LineupDirection.LEFT));
+        joystick.povRight().whileTrue(new ReefCenterer(drivetrain, driveRobotCentric, m_Vision, Vision.LineupDirection.RIGHT));
 
         // SysID Commands
         /**
