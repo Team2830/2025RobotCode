@@ -45,7 +45,7 @@ public class Vision {
 
     private PhotonCamera m_Camera = new PhotonCamera("Global_Shutter_Camera");
     public final Transform3d robotToCam = new Transform3d(new Translation3d(Distance.ofBaseUnits(9.237, Inches), Distance.ofBaseUnits(0, Inches), Distance.ofBaseUnits(7.851, Inches)), new Rotation3d());
-    private final AprilTagFieldLayout m_Field = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+    private final AprilTagFieldLayout m_Field = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
     private PhotonPoseEstimator m_GlobalPoseEstimator = new PhotonPoseEstimator(m_Field, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCam);
     private PhotonPoseEstimator m_LocalPoseEstimator = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCam);
     private Pose3d m_RelevantTagLocation;
