@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.generated.DrivetrainConfigs.TunerSwerveDrivetrain;
+import edu.wpi.first.math.kinematics.*;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
@@ -231,6 +232,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      */
     public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
         return run(() -> this.setControl(requestSupplier.get()));
+    }
+
+    public void setControl(Supplier<SwerveRequest> requestSupplier) {
+        super.setControl(requestSupplier.get());
     }
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {

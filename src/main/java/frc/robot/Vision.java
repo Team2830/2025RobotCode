@@ -21,6 +21,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -29,6 +30,10 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Unit;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /** Add your docs here. */
@@ -38,18 +43,21 @@ public class Vision {
         RIGHT
     }
 
-    private PhotonCamera m_Camera = new PhotonCamera("insertNameHere");
+    private PhotonCamera m_Camera = new PhotonCamera("Global_Shutter_Camera");
     public final Transform3d robotToCam = new Transform3d(new Translation3d(Distance.ofBaseUnits(9.237, Inches), Distance.ofBaseUnits(0, Inches), Distance.ofBaseUnits(7.851, Inches)), new Rotation3d());
     private final AprilTagFieldLayout m_Field = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
     private PhotonPoseEstimator m_GlobalPoseEstimator = new PhotonPoseEstimator(m_Field, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCam);
-    private PhotonPoseEstimator m_LocalPoseEstimator = new PhotonPoseEstimator(m_Field, PoseStrategy.CLOSEST_TO_CAMERA_HEIGHT, robotToCam);
-    private LineupDirection m_CurrentDirection;
+    private PhotonPoseEstimator m_LocalPoseEstimator = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCam);
     private Pose3d m_RelevantTagLocation;
     private Pose3d m_GoalLocation;
     private final Translation2d LEFT_OFFSET = new Translation2d(-Units.inchesToMeters(19.5), -Units.inchesToMeters(6.5));
     private final Translation2d RIGHT_OFFSET = new Translation2d(-Units.inchesToMeters(19.5), Units.inchesToMeters(6.5)); 
+    private final Field2d m_Field2d = new Field2d();
+    private int tagToLookAt = 0;
 
     public Vision() {
+        m_Camera.setPipelineIndex(0);
+        SmartDashboard.putData("Vision Pose", m_Field2d);
         m_GlobalPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
     }
 
@@ -59,23 +67,35 @@ public class Vision {
      * @return Whether an AprilTag was seen to lineup to.
      */
     public boolean initializeReefLineup(LineupDirection direction) {
-        this.m_CurrentDirection = direction;
 
         List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
-
         
+        // if(DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red) {
+        //     m_LocalPoseEstimator.setLastPose(m_Field.getTagPose(7).get());
+        // } else {
+        //     m_LocalPoseEstimator.setLastPose(m_Field.getTagPose(18).get());
+        // }
+
         if( ! results.isEmpty()) {
+            System.out.println("Got apriltag");
             PhotonPipelineResult result = results.get(results.size() - 1);
-            m_LocalPoseEstimator.update(result);
-            m_RelevantTagLocation = m_Field.getTagPose(result.getBestTarget().fiducialId).get();
-            if(direction == LineupDirection.LEFT) {
-                m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(LEFT_OFFSET, m_RelevantTagLocation.getRotation().toRotation2d())));
-            } else {
-                m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(RIGHT_OFFSET, m_RelevantTagLocation.getRotation().toRotation2d())));
+            
+            try {
+                m_LocalPoseEstimator.update(result);
+                tagToLookAt = result.getBestTarget().fiducialId;
+                m_RelevantTagLocation = m_Field.getTagPose(tagToLookAt).get();
+                if(direction == LineupDirection.LEFT) {
+                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(LEFT_OFFSET, m_RelevantTagLocation.getRotation().toRotation2d().plus(Rotation2d.k180deg))));
+                } else {
+                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(RIGHT_OFFSET, m_RelevantTagLocation.getRotation().toRotation2d().plus(Rotation2d.k180deg))));
+                }
+            } catch(Exception e) {
+                return false;
             }
 
             return true;
         } else {
+            System.out.println("no apriltag");
             return false;
         }
     }
@@ -84,13 +104,26 @@ public class Vision {
         List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
         
         if( ! results.isEmpty()) {
-            return m_LocalPoseEstimator.update(results.get(results.size() - 1)).get();
+            Optional<EstimatedRobotPose> estimatedPose = m_LocalPoseEstimator.update(results.get(results.size() - 1));
+
+            if(estimatedPose.isPresent() && results.get(results.size() - 1).getBestTarget().getFiducialId() == tagToLookAt) {
+                System.out.println("Setting robot pose");
+                m_Field2d.setRobotPose(estimatedPose.get().estimatedPose.toPose2d());
+                return estimatedPose.get();
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
     }
 
     public Pose2d getLocalPoseError(Pose2d drivetrainPose) {
+        SmartDashboard.putNumber("Vision Align Rotation Target", m_GoalLocation.getRotation().toRotation2d().getDegrees());
+        SmartDashboard.putNumber("Vision Align Current Rotation", drivetrainPose.getRotation().getDegrees());
+        SmartDashboard.putNumber("Vision Align Y Target", Units.metersToInches(m_GoalLocation.getY()));
+        SmartDashboard.putNumber("Vision Align Y Actual", Units.metersToInches(drivetrainPose.getY()));
+        SmartDashboard.putNumber("Vision Align Y Tag", Units.metersToInches(m_RelevantTagLocation.getY()));
         Transform3d result = m_GoalLocation.minus(new Pose3d(drivetrainPose));
         return new Pose2d(result.getX(), result.getY(), result.getRotation().toRotation2d());
     }
