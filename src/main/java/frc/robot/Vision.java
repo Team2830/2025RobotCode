@@ -85,9 +85,9 @@ public class Vision {
                 tagToLookAt = result.getBestTarget().fiducialId;
                 m_RelevantTagLocation = m_Field.getTagPose(tagToLookAt).get();
                 if(direction == LineupDirection.LEFT) {
-                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(LEFT_OFFSET, m_RelevantTagLocation.getRotation().toRotation2d().plus(Rotation2d.k180deg))));
+                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(LEFT_OFFSET.rotateBy(m_RelevantTagLocation.getRotation().toRotation2d()), m_RelevantTagLocation.getRotation().toRotation2d().plus(Rotation2d.k180deg))));
                 } else {
-                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(RIGHT_OFFSET, m_RelevantTagLocation.getRotation().toRotation2d().plus(Rotation2d.k180deg))));
+                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(RIGHT_OFFSET.rotateBy(m_RelevantTagLocation.getRotation().toRotation2d()), m_RelevantTagLocation.getRotation().toRotation2d().plus(Rotation2d.k180deg))));
                 }
             } catch(Exception e) {
                 return false;
@@ -124,8 +124,7 @@ public class Vision {
         SmartDashboard.putNumber("Vision Align Y Target", Units.metersToInches(m_GoalLocation.getY()));
         SmartDashboard.putNumber("Vision Align Y Actual", Units.metersToInches(drivetrainPose.getY()));
         SmartDashboard.putNumber("Vision Align Y Tag", Units.metersToInches(m_RelevantTagLocation.getY()));
-        Transform3d result = m_GoalLocation.minus(new Pose3d(drivetrainPose));
-        return new Pose2d(result.getX(), result.getY(), result.getRotation().toRotation2d());
+        return m_GoalLocation.toPose2d().relativeTo(drivetrainPose);
     }
 
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d previousEstimatedRobotPose) {
