@@ -55,7 +55,7 @@ public class RobotContainer {
     
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+            .withDeadband(MaxSpeed * 0.03).withRotationalDeadband(MaxAngularRate * 0.03) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
     private final SwerveRequest.RobotCentric driveRobotCentric = new SwerveRequest.RobotCentric()
@@ -67,7 +67,7 @@ public class RobotContainer {
 
      private final ProfiledFieldCentricFacingAngle drivetrainTargetAngle =
         new ProfiledFieldCentricFacingAngle(new TrapezoidProfile.Constraints(MaxAngularRate, MaxAngularRate / 0.25))
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+            .withDeadband(MaxSpeed * 0.03).withRotationalDeadband(MaxAngularRate * 0.03) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
     
@@ -80,8 +80,8 @@ public class RobotContainer {
     private static final Rotation2d angle_MiddleFarReef = Rotation2d.fromDegrees(0);
     private static final Rotation2d angle_RightFarReef = Rotation2d.fromDegrees(-60);
 
-    private static final Rotation2d angle_LeftCoralStation = Rotation2d.fromDegrees(150);
-    private static final Rotation2d angle_RightCoralStation= Rotation2d.fromDegrees(240);
+    private static final Rotation2d angle_LeftCoralStation = Rotation2d.fromDegrees(132);
+    private static final Rotation2d angle_RightCoralStation= Rotation2d.fromDegrees(-137);
 
 
 

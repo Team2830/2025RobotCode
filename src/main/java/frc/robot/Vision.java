@@ -44,21 +44,43 @@ public class Vision {
     }
 
     private PhotonCamera m_Camera = new PhotonCamera("Global_Shutter_Camera");
-    public final Transform3d robotToCam = new Transform3d(new Translation3d(Distance.ofBaseUnits(9.237, Inches), Distance.ofBaseUnits(0, Inches), Distance.ofBaseUnits(7.851, Inches)), new Rotation3d());
+    public final Transform3d robotToCam = new Transform3d(new Translation3d(Units.inchesToMeters(9.237), Units.inchesToMeters(0), Units.inchesToMeters(7.851)), new Rotation3d());
     private final AprilTagFieldLayout m_Field = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
-    private PhotonPoseEstimator m_GlobalPoseEstimator = new PhotonPoseEstimator(m_Field, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCam);
+    private PhotonPoseEstimator m_GlobalPoseEstimator = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCam);
     private PhotonPoseEstimator m_LocalPoseEstimator = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCam);
     private Pose3d m_RelevantTagLocation;
     private Pose3d m_GoalLocation;
     private final Translation2d LEFT_OFFSET = new Translation2d(-Units.inchesToMeters(19.5), -Units.inchesToMeters(6.5));
     private final Translation2d RIGHT_OFFSET = new Translation2d(-Units.inchesToMeters(19.5), Units.inchesToMeters(6.5)); 
-    private final Field2d m_Field2d = new Field2d();
+    // private final Field2d m_Field2d = new Field2d();
     private int tagToLookAt = 0;
+    private Rotation2d goalRotation;
 
     public Vision() {
         m_Camera.setPipelineIndex(0);
-        SmartDashboard.putData("Vision Pose", m_Field2d);
-        m_GlobalPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
+        // SmartDashboard.putData("Vision Pose", m_Field2d);
+        // m_GlobalPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
+    }
+
+    private PhotonTrackedTarget getTarget(PhotonPipelineResult result) {
+        System.out.println("Running getTarget");
+        PhotonTrackedTarget bestTarget = null;
+        double bestArea = 0;
+        
+        for(PhotonTrackedTarget currentTarget : result.getTargets()) {
+            System.out.println("Tag: " + currentTarget.getFiducialId() + " Area: " + currentTarget.getArea());    
+            if(currentTarget.getArea() > bestArea) {
+                bestTarget = currentTarget;
+                bestArea = currentTarget.getArea();
+                System.out.println("Best Tag: " + currentTarget.getFiducialId() + " Area: " + currentTarget.getArea());
+            }
+        }
+
+        return bestTarget;
+    }
+
+    public void clear() {
+        tagToLookAt = 0;
     }
 
     /**
@@ -82,13 +104,23 @@ public class Vision {
             
             try {
                 m_LocalPoseEstimator.update(result);
-                tagToLookAt = result.getBestTarget().fiducialId;
+                PhotonTrackedTarget target = getTarget(result);
+                if(target != null) {
+                    tagToLookAt = target.getFiducialId();
+                } else {
+                    return false;
+                }
+                
                 m_RelevantTagLocation = m_Field.getTagPose(tagToLookAt).get();
+                SmartDashboard.putNumber("Initial Tag Pose", m_RelevantTagLocation.getRotation().toRotation2d().getDegrees());
+                SmartDashboard.putNumber("Rotated Rotation", Rotation2d.fromDegrees(m_RelevantTagLocation.getRotation().toRotation2d().getDegrees() + 180).getDegrees());
+                goalRotation = Rotation2d.fromDegrees(m_RelevantTagLocation.getRotation().toRotation2d().getDegrees() + 180);
                 if(direction == LineupDirection.LEFT) {
-                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(LEFT_OFFSET.rotateBy(m_RelevantTagLocation.getRotation().toRotation2d()), m_RelevantTagLocation.getRotation().toRotation2d().plus(Rotation2d.k180deg))));
+                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(LEFT_OFFSET.rotateBy(m_RelevantTagLocation.getRotation().toRotation2d()), Rotation2d.fromDegrees(m_RelevantTagLocation.getRotation().toRotation2d().getDegrees() + 180))));
                 } else {
                     m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(RIGHT_OFFSET.rotateBy(m_RelevantTagLocation.getRotation().toRotation2d()), m_RelevantTagLocation.getRotation().toRotation2d().plus(Rotation2d.k180deg))));
                 }
+                SmartDashboard.putNumber("Used Rotation", goalRotation.getDegrees());
             } catch(Exception e) {
                 return false;
             }
@@ -104,12 +136,22 @@ public class Vision {
         List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
         
         if( ! results.isEmpty()) {
-            Optional<EstimatedRobotPose> estimatedPose = m_LocalPoseEstimator.update(results.get(results.size() - 1));
+            PhotonPipelineResult result = results.get(results.size() - 1);
 
-            if(estimatedPose.isPresent() && results.get(results.size() - 1).getBestTarget().getFiducialId() == tagToLookAt) {
-                System.out.println("Setting robot pose");
-                m_Field2d.setRobotPose(estimatedPose.get().estimatedPose.toPose2d());
-                return estimatedPose.get();
+            if( ! result.hasTargets()) {
+                return null;
+            }
+
+            if(result.getBestTarget().getFiducialId() == tagToLookAt) {                
+                Optional<EstimatedRobotPose> estimatedPose = m_LocalPoseEstimator.update(result);
+            
+                if(estimatedPose.isPresent()) {
+                    System.out.println("Setting robot pose");
+                    // m_Field2d.setRobotPose(estimatedPose.get().estimatedPose.toPose2d());
+                    return estimatedPose.get();
+                } else {
+                    return null;
+                }
             } else {
                 return null;
             }
@@ -124,11 +166,13 @@ public class Vision {
         SmartDashboard.putNumber("Vision Align Y Target", Units.metersToInches(m_GoalLocation.getY()));
         SmartDashboard.putNumber("Vision Align Y Actual", Units.metersToInches(drivetrainPose.getY()));
         SmartDashboard.putNumber("Vision Align Y Tag", Units.metersToInches(m_RelevantTagLocation.getY()));
-        return m_GoalLocation.toPose2d().relativeTo(drivetrainPose);
+        Translation2d translation = m_GoalLocation.toPose2d().relativeTo(drivetrainPose).rotateAround(m_RelevantTagLocation.getTranslation().toTranslation2d(), m_RelevantTagLocation.getRotation().toRotation2d()).getTranslation();
+        Rotation2d rotation = goalRotation.minus(drivetrainPose.getRotation());
+        return new Pose2d(translation, rotation);
     }
 
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d previousEstimatedRobotPose) {
-        m_GlobalPoseEstimator.setReferencePose(previousEstimatedRobotPose);
+        // m_GlobalPoseEstimator.setReferencePose(previousEstimatedRobotPose);
 
         List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
         

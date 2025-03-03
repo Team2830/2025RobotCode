@@ -30,6 +30,7 @@ private Vision.LineupDirection m_Direction;
   private boolean isLinedUp = false;
   private ProfiledPIDController m_RotationController = new ProfiledPIDController(1.0, 0, 0, new Constraints(1.0, 1.0));
   SwerveDrivePoseEstimator m_PoseEstimator;
+  private boolean hasAddedVision = false;
 
   private boolean foundRotation = false;
 
@@ -55,6 +56,10 @@ private Vision.LineupDirection m_Direction;
 
   @Override
   public void execute() {
+    if (! shouldTryLineup) {
+      return;
+    }
+
     EstimatedRobotPose visionResult = m_Vision.getEstimatedLocalPose();
 
     // if(visionResult != null && m_PoseEstimator == null) {
@@ -93,20 +98,20 @@ private Vision.LineupDirection m_Direction;
     double y = 0.0;
     double rotation = 0.0;
 
-    if(Math.abs(error.getRotation().getDegrees()) > 2.0 && ! foundRotation) {
+    if(Math.abs(error.getRotation().getDegrees()) > 2.0) {
       System.out.println("Error: " + error.getRotation().getDegrees());
       SmartDashboard.putNumber("Rotation Error", error.getRotation().getDegrees());
       rotation = -1.0 * m_RotationController.calculate(error.getRotation().getRadians());
       // rotation = 1.2 * error.getRotation().getRadians();
       System.out.println("Fixing rotation, speed: " + rotation);
 
-    } else if(Math.abs(Units.metersToInches(error.getY())) > 0.5) {
+    } else if(Math.abs(Units.metersToInches(error.getY())) > 1.0) {
       foundRotation = true;
-      y = error.getY() * 1.6;
+      y = error.getY() * 3.2;
       SmartDashboard.putNumber("Y Error", Units.metersToInches(error.getY()));
       System.out.println("Fixing x");
 
-    }else if (Math.abs(Units.metersToInches(error.getX())) >0.5) {
+    }else if (Math.abs(Units.metersToInches(error.getX())) >1.0) {
       foundRotation = true;
       x = error.getX() * 1.0;
       System.out.println("Fixing Y");
@@ -132,6 +137,7 @@ private Vision.LineupDirection m_Direction;
   public void end(boolean interrupted) {
     foundRotation = false;
     m_PoseEstimator = null;
+    m_Vision.clear();
   }
 
   @Override
