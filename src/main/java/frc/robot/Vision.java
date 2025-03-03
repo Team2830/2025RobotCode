@@ -50,11 +50,10 @@ public class Vision {
     private PhotonPoseEstimator m_LocalPoseEstimator = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCam);
     private Pose3d m_RelevantTagLocation;
     private Pose3d m_GoalLocation;
-    private final Translation2d LEFT_OFFSET = new Translation2d(-Units.inchesToMeters(19.5), -Units.inchesToMeters(6.5));
-    private final Translation2d RIGHT_OFFSET = new Translation2d(-Units.inchesToMeters(19.5), Units.inchesToMeters(6.5)); 
+    private final Translation2d LEFT_OFFSET = new Translation2d(Units.inchesToMeters(19.5), Units.inchesToMeters(-6.5));
+    private final Translation2d RIGHT_OFFSET = new Translation2d(Units.inchesToMeters(19.5), Units.inchesToMeters(6.5)); 
     // private final Field2d m_Field2d = new Field2d();
     private int tagToLookAt = 0;
-    private Rotation2d goalRotation;
 
     public Vision() {
         m_Camera.setPipelineIndex(0);
@@ -114,13 +113,11 @@ public class Vision {
                 m_RelevantTagLocation = m_Field.getTagPose(tagToLookAt).get();
                 SmartDashboard.putNumber("Initial Tag Pose", m_RelevantTagLocation.getRotation().toRotation2d().getDegrees());
                 SmartDashboard.putNumber("Rotated Rotation", Rotation2d.fromDegrees(m_RelevantTagLocation.getRotation().toRotation2d().getDegrees() + 180).getDegrees());
-                goalRotation = Rotation2d.fromDegrees(m_RelevantTagLocation.getRotation().toRotation2d().getDegrees() + 180);
                 if(direction == LineupDirection.LEFT) {
-                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(LEFT_OFFSET.rotateBy(m_RelevantTagLocation.getRotation().toRotation2d()), Rotation2d.fromDegrees(m_RelevantTagLocation.getRotation().toRotation2d().getDegrees() + 180))));
+                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(LEFT_OFFSET, Rotation2d.k180deg)));
                 } else {
-                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(RIGHT_OFFSET.rotateBy(m_RelevantTagLocation.getRotation().toRotation2d()), m_RelevantTagLocation.getRotation().toRotation2d().plus(Rotation2d.k180deg))));
+                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(RIGHT_OFFSET, Rotation2d.k180deg)));
                 }
-                SmartDashboard.putNumber("Used Rotation", goalRotation.getDegrees());
             } catch(Exception e) {
                 return false;
             }
@@ -160,15 +157,20 @@ public class Vision {
         }
     }
 
+    /**
+     * Returns the error pose for reef alignment.
+     * @param drivetrainPose The current pose of the drivetrain.
+     * @return A pose object giving information on the movement the drivetrain needs to make. Positive Y is to the right, positive X is backwards.
+     */
     public Pose2d getLocalPoseError(Pose2d drivetrainPose) {
         SmartDashboard.putNumber("Vision Align Rotation Target", m_GoalLocation.getRotation().toRotation2d().getDegrees());
         SmartDashboard.putNumber("Vision Align Current Rotation", drivetrainPose.getRotation().getDegrees());
         SmartDashboard.putNumber("Vision Align Y Target", Units.metersToInches(m_GoalLocation.getY()));
         SmartDashboard.putNumber("Vision Align Y Actual", Units.metersToInches(drivetrainPose.getY()));
         SmartDashboard.putNumber("Vision Align Y Tag", Units.metersToInches(m_RelevantTagLocation.getY()));
-        Translation2d translation = m_GoalLocation.toPose2d().relativeTo(drivetrainPose).rotateAround(m_RelevantTagLocation.getTranslation().toTranslation2d(), m_RelevantTagLocation.getRotation().toRotation2d()).getTranslation();
-        Rotation2d rotation = goalRotation.minus(drivetrainPose.getRotation());
-        return new Pose2d(translation, rotation);
+        Pose2d translationErrorPose = drivetrainPose.relativeTo(m_GoalLocation.toPose2d());
+        Pose2d errorPose = new Pose2d(translationErrorPose.getTranslation(), m_GoalLocation.getRotation().toRotation2d().minus(drivetrainPose.getRotation()));
+        return errorPose;
     }
 
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d previousEstimatedRobotPose) {
