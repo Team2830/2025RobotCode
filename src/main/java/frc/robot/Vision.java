@@ -14,6 +14,7 @@ import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.common.hardware.VisionLEDMode;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
@@ -183,6 +184,18 @@ public class Vision {
         } else {
             return null;
         }
+    }
+
+    public void ledOn() {
+        m_Camera.setLED(VisionLEDMode.kOn);
+    }
+
+    public void ledFlash() {
+        m_Camera.setLED(VisionLEDMode.kBlink);
+    }
+
+    public void ledOff() {
+        m_Camera.setLED(VisionLEDMode.kOff);
     }
 
     public void debugVision() {

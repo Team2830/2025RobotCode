@@ -52,6 +52,7 @@ private Vision.LineupDirection m_Direction;
   @Override
   public void initialize() {
     shouldTryLineup = m_Vision.initializeReefLineup(m_Direction);
+    m_Vision.ledOn();
     
     System.out.println("Trying lineup");
   }
@@ -139,6 +140,12 @@ private Vision.LineupDirection m_Direction;
 
   @Override
   public void end(boolean interrupted) {
+    if(isLinedUp) {
+      m_Vision.ledOff();
+    } else {
+      m_Vision.ledFlash();
+    }
+
     foundRotation = false;
     foundY = false;
     foundX = false;
