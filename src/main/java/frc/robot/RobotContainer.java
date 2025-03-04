@@ -114,7 +114,6 @@ public class RobotContainer {
     private final SendableChooser<Command> autoChooser;
 
     public RobotContainer() {
-        m_ManualTurning = new Trigger(() -> Math.abs(joystick.getRightX()) > 0.1);
         angle_Limiter = new SlewRateLimiter(Constants.Swerve.joystickSlewLimiter_angle);
         x_Limiter = new SlewRateLimiter(Constants.Swerve.joystickSlewLimiter_xy);
         y_Limiter = new SlewRateLimiter(Constants.Swerve.joystickSlewLimiter_xy);
