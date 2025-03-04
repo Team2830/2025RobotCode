@@ -51,7 +51,7 @@ import frc.robot.subsystems.Manipulator;
 
 public class RobotContainer {
     private double MaxSpeed = DrivetrainConfigs.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
+    private double MaxAngularRate = RotationsPerSecond.of(1.5).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
     
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -80,8 +80,8 @@ public class RobotContainer {
     private static final Rotation2d angle_MiddleFarReef = Rotation2d.fromDegrees(0);
     private static final Rotation2d angle_RightFarReef = Rotation2d.fromDegrees(-60);
 
-    private static final Rotation2d angle_LeftCoralStation = Rotation2d.fromDegrees(132);
-    private static final Rotation2d angle_RightCoralStation= Rotation2d.fromDegrees(-137);
+    private static final Rotation2d angle_LeftCoralStation = Rotation2d.fromDegrees(126 );
+    private static final Rotation2d angle_RightCoralStation= Rotation2d.fromDegrees(-126);
 
 
 
@@ -106,6 +106,7 @@ public class RobotContainer {
     private Trigger leftTrigger;
     private Trigger rightTrigger;
     private AlgaeArm algaeArm = new AlgaeArm();
+    private double debounce = 0.03;
 
     private Vision m_Vision = new Vision();
 
@@ -113,6 +114,7 @@ public class RobotContainer {
     private final SendableChooser<Command> autoChooser;
 
     public RobotContainer() {
+        m_ManualTurning = new Trigger(() -> Math.abs(joystick.getRightX()) > 0.1);
         angle_Limiter = new SlewRateLimiter(Constants.Swerve.joystickSlewLimiter_angle);
         x_Limiter = new SlewRateLimiter(Constants.Swerve.joystickSlewLimiter_xy);
         y_Limiter = new SlewRateLimiter(Constants.Swerve.joystickSlewLimiter_xy);
@@ -232,57 +234,57 @@ public class RobotContainer {
         **/
         
         // Hold A/B/X/Y Combination to translate with a target rotational angle corresponding to a side of the reef
-        joystick.x().and(joystick.a().debounce(0.15)).whileTrue(
+        joystick.x().and(joystick.a()).debounce(debounce).onTrue(
             drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_LeftCloseReef)
                         .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                         .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
-            )
+            ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
         );
-        joystick.a().whileTrue(
+        joystick.a().and(joystick.x().negate().and(joystick.b().negate())).debounce(debounce).onTrue(
             drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_MiddleCloseReef)
                           .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                           .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
-            )
+            ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
         );
-        joystick.a().and(joystick.b().debounce(0.15)).whileTrue(
+        joystick.a().and(joystick.b()).debounce(debounce).onTrue(
             drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_RightCloseReef)
                          .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                          .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
-            )
+            ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
         );
-        joystick.y().and(joystick.x()).debounce(0.15).whileTrue(
+        joystick.y().and(joystick.x()).debounce(debounce).onTrue(
             drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_LeftFarReef)
                       .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                       .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
-            )
+            ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
         );
-        joystick.y().whileTrue(
+        joystick.y().and(joystick.x().negate().and(joystick.b().negate())).debounce(debounce).onTrue(
             drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_MiddleFarReef)
                         .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                         .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
-            )
+            ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
         );
         
-        joystick.y().and(joystick.b().debounce(0.15)).whileTrue(
+        joystick.y().and(joystick.b()).debounce(debounce).onTrue(
             drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_RightFarReef)
                        .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                        .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
-            )
+            ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
 
         );
         /////////////////////////////// loading station alignment /////////////////////////
-        joystick.x().whileTrue(
+        joystick.x().and(joystick.a().negate().and(joystick.y().negate())).debounce(debounce).onTrue(
             drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_LeftCoralStation)
             .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
             .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
-            )
+            ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
         );
 
-        joystick.b().whileTrue(
+        joystick.b().and(joystick.a().negate().and(joystick.y().negate())).debounce(debounce).onTrue(
             drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(angle_RightCoralStation)
                         .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                         .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
-            )
+            ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
         );
 
         

@@ -47,7 +47,7 @@ public class ProfiledFieldCentricFacingAngle implements SwerveRequest {
 
     public ProfiledFieldCentricFacingAngle(TrapezoidProfile.Constraints constraints) {
         profile = new TrapezoidProfile(constraints);
-        HeadingController.setPID(0.4, 0, 0);
+        HeadingController.setPID(.47, 0, 0);
     }
 
     public StatusCode apply(SwerveControlParameters parameters, SwerveModule... modulesToApply) {
