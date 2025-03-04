@@ -33,6 +33,8 @@ private Vision.LineupDirection m_Direction;
   private boolean hasAddedVision = false;
 
   private boolean foundRotation = false;
+  private boolean foundY = false;
+  private boolean foundX = false;
 
       private final SwerveRequest.RobotCentric driveRobotCentric = new SwerveRequest.RobotCentric()
             .withDriveRequestType(DriveRequestType.Velocity); // Use open-loop control for drive motors
@@ -98,24 +100,26 @@ private Vision.LineupDirection m_Direction;
     double y = 0.0;
     double rotation = 0.0;
 
-    if(Math.abs(error.getRotation().getDegrees()) > 2.0) {
+    if(Math.abs(error.getRotation().getDegrees()) > 3.0 && ! foundRotation) {
       System.out.println("Error: " + error.getRotation().getDegrees());
       SmartDashboard.putNumber("Rotation Error", error.getRotation().getDegrees());
       rotation = -1.0 * m_RotationController.calculate(error.getRotation().getRadians());
       // rotation = 1.2 * error.getRotation().getRadians();
       System.out.println("Fixing rotation, speed: " + rotation);
 
-    } else if(Math.abs(Units.metersToInches(error.getY())) > 1.0) {
+    } else if(Math.abs(Units.metersToInches(error.getY())) > 1.0 && ! foundY) {
       foundRotation = true;
-      y = error.getY() * 3.2;
+      y = error.getY() * -3.2;
       SmartDashboard.putNumber("Y Error", Units.metersToInches(error.getY()));
       System.out.println("Fixing x");
 
-    }else if (Math.abs(Units.metersToInches(error.getX())) >1.0) {
+    }else if (Math.abs(Units.metersToInches(error.getX())) >1.0 && ! foundX) {
+      foundY = true;
       foundRotation = true;
-      x = error.getX() * 1.0;
+      x = error.getX() * -3.2;
       System.out.println("Fixing Y");
     } else {
+      foundX = true;
       isLinedUp = true;
       System.out.println("All good");
     }
@@ -136,8 +140,12 @@ private Vision.LineupDirection m_Direction;
   @Override
   public void end(boolean interrupted) {
     foundRotation = false;
+    foundY = false;
+    foundX = false;
     m_PoseEstimator = null;
     m_Vision.clear();
+    shouldTryLineup = false;
+    isLinedUp = false;
   }
 
   @Override
