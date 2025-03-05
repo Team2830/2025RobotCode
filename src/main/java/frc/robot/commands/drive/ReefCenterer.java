@@ -28,7 +28,13 @@ private Vision m_Vision;
 private Vision.LineupDirection m_Direction;
   private boolean shouldTryLineup = false;
   private boolean isLinedUp = false;
-  private ProfiledPIDController m_RotationController = new ProfiledPIDController(1.0, 0, 0, new Constraints(1.0, 1.0));
+
+  private final double rotationGain = 2.0;
+  private final double yGain = 4.2;
+  private final double xGain = 4.2;
+
+
+  private ProfiledPIDController m_RotationController = new ProfiledPIDController(rotationGain, 0, 0, new Constraints(1.0, 1.0));
   SwerveDrivePoseEstimator m_PoseEstimator;
   private boolean hasAddedVision = false;
 
@@ -97,6 +103,8 @@ private Vision.LineupDirection m_Direction;
 
     Pose2d error = m_Vision.getLocalPoseError(m_drivetrain.getState().Pose);
 
+    System.out.print("Error: " + error.toString());
+
     double x = 0.0;
     double y = 0.0;
     double rotation = 0.0;
@@ -112,22 +120,25 @@ private Vision.LineupDirection m_Direction;
       foundRotation = true;
     }
     
-    if(foundRotation && Math.abs(Units.metersToInches(error.getY())) > 1.0) {
+    if(foundRotation && Math.abs(Units.metersToInches(error.getY())) > 0.5) {
       
-      y = error.getY() * -3.2;
+      y = error.getY() * -yGain;
       SmartDashboard.putNumber("Y Error", Units.metersToInches(error.getY()));
       System.out.println("Fixing x");
 
     } else {
-      foundY = true;
+      foundY = foundRotation;
     }
     
     if (foundRotation && foundY && Math.abs(Units.metersToInches(error.getX())) > 1.0) {
       
-      x = error.getX() * -3.2;
+      x = error.getX() * -xGain;
       System.out.println("Fixing Y");
     } else {
-      foundX = true;
+      foundX = foundY;
+    }
+
+    if(foundRotation && foundY && foundX){
       isLinedUp = true;
       System.out.println("All good");
     }
