@@ -58,21 +58,16 @@ public class Vision {
 
     public Vision() {
         m_Camera.setPipelineIndex(0);
-        // SmartDashboard.putData("Vision Pose", m_Field2d);
-        // m_GlobalPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
     }
 
     private PhotonTrackedTarget getTarget(PhotonPipelineResult result) {
-        System.out.println("Running getTarget");
         PhotonTrackedTarget bestTarget = null;
         double bestArea = 0;
         
         for(PhotonTrackedTarget currentTarget : result.getTargets()) {
-            System.out.println("Tag: " + currentTarget.getFiducialId() + " Area: " + currentTarget.getArea());    
             if(currentTarget.getArea() > bestArea) {
                 bestTarget = currentTarget;
                 bestArea = currentTarget.getArea();
-                System.out.println("Best Tag: " + currentTarget.getFiducialId() + " Area: " + currentTarget.getArea());
             }
         }
 
@@ -92,14 +87,7 @@ public class Vision {
 
         List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
         
-        // if(DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red) {
-        //     m_LocalPoseEstimator.setLastPose(m_Field.getTagPose(7).get());
-        // } else {
-        //     m_LocalPoseEstimator.setLastPose(m_Field.getTagPose(18).get());
-        // }
-
         if( ! results.isEmpty()) {
-            System.out.println("Got apriltag");
             PhotonPipelineResult result = results.get(results.size() - 1);
             
             try {
@@ -112,8 +100,10 @@ public class Vision {
                 }
                 
                 m_RelevantTagLocation = m_Field.getTagPose(tagToLookAt).get();
+                
                 SmartDashboard.putNumber("Initial Tag Pose", m_RelevantTagLocation.getRotation().toRotation2d().getDegrees());
                 SmartDashboard.putNumber("Rotated Rotation", Rotation2d.fromDegrees(m_RelevantTagLocation.getRotation().toRotation2d().getDegrees() + 180).getDegrees());
+                
                 if(direction == LineupDirection.LEFT) {
                     m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(LEFT_OFFSET, Rotation2d.k180deg)));
                 } else {
@@ -125,7 +115,6 @@ public class Vision {
 
             return true;
         } else {
-            System.out.println("no apriltag");
             return false;
         }
     }
@@ -144,8 +133,6 @@ public class Vision {
                 Optional<EstimatedRobotPose> estimatedPose = m_LocalPoseEstimator.update(result);
             
                 if(estimatedPose.isPresent()) {
-                    System.out.println("Setting robot pose");
-                    // m_Field2d.setRobotPose(estimatedPose.get().estimatedPose.toPose2d());
                     return estimatedPose.get();
                 } else {
                     return null;
