@@ -39,19 +39,19 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     m_Vision.debugVision();
-    // if(kUseVision) {
-    //   Optional<Pose2d> lastPose = m_robotContainer.drivetrain.samplePoseAt(Utils.getCurrentTimeSeconds());
+    if(kUseVision) {
+      Optional<Pose2d> lastPose = m_robotContainer.drivetrain.samplePoseAt(Utils.getCurrentTimeSeconds());
 
-    //   if(lastPose != null && lastPose.isPresent()) {
-    //     Optional<EstimatedRobotPose> estimatedPose = m_Vision.getEstimatedGlobalPose(lastPose.get());
+      if(lastPose != null && lastPose.isPresent()) {
+        Optional<EstimatedRobotPose> estimatedPose = m_Vision.getEstimatedGlobalPose(lastPose.get());
 
-    //     if(estimatedPose != null && estimatedPose.isPresent()) {
-    //       m_robotContainer.drivetrain.addVisionMeasurement(estimatedPose.get().estimatedPose.toPose2d(), Utils.fpgaToCurrentTime(estimatedPose.get().timestampSeconds));
-    //       m_field.setRobotPose(estimatedPose.get().estimatedPose.toPose2d());
-    //     }
-    //   }
-    //   SmartDashboard.putNumber("Rot to Apriltag", m_Vision.getRobotCentricRotToTarget());
-    // }
+        if(estimatedPose != null && estimatedPose.isPresent() && ! m_Vision.isUsingLocalPoseEstimate()) {
+          m_robotContainer.drivetrain.addVisionMeasurement(estimatedPose.get().estimatedPose.toPose2d(), Utils.fpgaToCurrentTime(estimatedPose.get().timestampSeconds));
+        }
+        
+        m_field.setRobotPose(m_robotContainer.drivetrain.getState().Pose);
+      }
+    }
   }
 
   @Override

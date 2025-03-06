@@ -55,9 +55,14 @@ public class Vision {
     private final Translation2d RIGHT_OFFSET = new Translation2d(Units.inchesToMeters(19.5), Units.inchesToMeters(6.5)); 
     // private final Field2d m_Field2d = new Field2d();
     private int tagToLookAt = 0;
+    private boolean usingLocalPoseEstimate = false;
 
     public Vision() {
         m_Camera.setPipelineIndex(0);
+    }
+
+    public boolean isUsingLocalPoseEstimate() {
+        return usingLocalPoseEstimate;
     }
 
     private PhotonTrackedTarget getTarget(PhotonPipelineResult result) {
@@ -76,6 +81,7 @@ public class Vision {
 
     public void clear() {
         tagToLookAt = 0;
+        usingLocalPoseEstimate = false;
     }
 
     /**
@@ -109,6 +115,8 @@ public class Vision {
                 } else {
                     m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(RIGHT_OFFSET, Rotation2d.k180deg)));
                 }
+
+                usingLocalPoseEstimate = true;
             } catch(Exception e) {
                 return false;
             }
