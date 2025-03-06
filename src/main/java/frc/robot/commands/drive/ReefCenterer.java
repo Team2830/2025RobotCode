@@ -29,8 +29,8 @@ private Vision.LineupDirection m_Direction;
   private boolean isLinedUp = false;
 
   private final double rotationGain = 2.0;
-  private final double yGain = 4.2;
-  private final double xGain = 4.2;
+  private final double yGain = 6.2;
+  private final double xGain = 6.2;
 
 
   private ProfiledPIDController m_RotationController = new ProfiledPIDController(rotationGain, 0, 0, new Constraints(1.0, 1.0));
@@ -72,7 +72,7 @@ private Vision.LineupDirection m_Direction;
       visionStdDev.set(1, 0, Units.inchesToMeters(1.0)); // Y StdDev
       visionStdDev.set(2, 0, Units.degreesToRadians(20)); // Heading StdDev
 
-      m_drivetrain.addVisionMeasurement(visionResult.estimatedPose.toPose2d(), Utils.fpgaToCurrentTime(visionResult.timestampSeconds));
+      m_drivetrain.addVisionMeasurement(visionResult.estimatedPose.toPose2d(), Utils.fpgaToCurrentTime(visionResult.timestampSeconds), visionStdDev);
     }
 
     Pose2d error = m_Vision.getLocalPoseError(m_drivetrain.getState().Pose);
@@ -81,23 +81,28 @@ private Vision.LineupDirection m_Direction;
     double y = 0.0;
     double rotation = 0.0;
 
-    if(Math.abs(error.getRotation().getDegrees()) > 3.0) {
-      SmartDashboard.putNumber("Rotation Error", error.getRotation().getDegrees());
-      rotation = -1.0 * m_RotationController.calculate(error.getRotation().getRadians());
-    }  else {
+    
+    SmartDashboard.putNumber("Rotation Error", error.getRotation().getDegrees());
+    rotation = -1.0 * m_RotationController.calculate(error.getRotation().getRadians());
+    
+    if(Math.abs(error.getRotation().getDegrees()) < 2.0) {
       foundRotation = true;
     }
     
-    if(foundRotation && Math.abs(Units.metersToInches(error.getY())) > 0.5) {
+    if(foundRotation) {
       y = error.getY() * -yGain;
       SmartDashboard.putNumber("Y Error", Units.metersToInches(error.getY()));
-    } else {
+    }
+    
+    if (Math.abs(Units.metersToInches(error.getY())) < 0.5){
       foundY = foundRotation;
     }
     
-    if (foundRotation && foundY && Math.abs(Units.metersToInches(error.getX())) > 1.0) {
+    if (foundRotation && foundY) {
       x = error.getX() * -xGain;
-    } else {
+    } 
+    
+    if(Math.abs(Units.metersToInches(error.getX())) < 0.5) {
       foundX = foundY;
     }
 
