@@ -142,8 +142,8 @@ public class RobotContainer {
     private void configureBindings() {
         SignalLogger.setPath("/media/sda1/ctre-logs/");
         //////////////////////////////////////// Manipulator Controls (Operator Joystick) //////////////////////////////////////////////
-        operatorJoystick.leftBumper().onTrue(new Intake(manipulator).andThen(new BackCoralToSensor(manipulator)) );
-        operatorJoystick.rightBumper().or(joystick.rightTrigger()).onTrue(new Shoot(manipulator) );
+        operatorJoystick.leftTrigger().onTrue(new Intake(manipulator).andThen(new BackCoralToSensor(manipulator)) );
+        operatorJoystick.rightTrigger().or(joystick.rightBumper()).onTrue(new Shoot(manipulator) );
         //operatorJoystick.start().whileTrue(new ShooterReverse(manipulator));
   
         rightTrigger.whileTrue(new RemoveAlgae(algaeArm));
@@ -201,25 +201,25 @@ public class RobotContainer {
         );
 
         // Slow Mode (Field Centric) While Right Bumper Held
-        joystick.rightBumper().whileTrue(
+        joystick.leftBumper().whileTrue(
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed * 0.3) // Drive forward with negative Y (forward)
-                    .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed * 0.3) // Drive left with negative X (left)
-                    .withRotationalRate(-angle_Limiter.calculate(joystick.getRightX()) * MaxAngularRate * 0.3) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed * 0.15) // Drive forward with negative Y (forward)
+                    .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed * 0.15) // Drive left with negative X (left)
+                    .withRotationalRate(-angle_Limiter.calculate(joystick.getRightX()) * MaxAngularRate * 0.15) // Drive counterclockwise with negative X (left)
             ) 
         );
 
         // Slow Mode (Robot Centric) While Left Bumper Held
-        joystick.leftBumper().whileTrue(
-            drivetrain.applyRequest(() ->
-                driveRobotCentric.withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed * 0.3) // Drive forward with negative Y (forward)
-                    .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed * 0.3) // Drive left with negative X (left)
-                    .withRotationalRate(-angle_Limiter.calculate(joystick.getRightX()) * MaxAngularRate * 0.3) // Drive counterclockwise with negative X (left)
-            )
-        );
+        // joystick.leftBumper().whileTrue(
+        //     drivetrain.applyRequest(() ->
+        //         driveRobotCentric.withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed * 0.3) // Drive forward with negative Y (forward)
+        //             .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed * 0.3) // Drive left with negative X (left)
+        //             .withRotationalRate(-angle_Limiter.calculate(joystick.getRightX()) * MaxAngularRate * 0.3) // Drive counterclockwise with negative X (left)
+        //     )
+        // );
 
-        joystick.povLeft().whileTrue(new ReefCenterer(drivetrain, driveRobotCentric, m_Vision, Vision.LineupDirection.LEFT));
-        joystick.povRight().whileTrue(new ReefCenterer(drivetrain, driveRobotCentric, m_Vision, Vision.LineupDirection.RIGHT));
+        joystick.leftTrigger().debounce(0.05).whileTrue(new ReefCenterer(drivetrain, driveRobotCentric, m_Vision, Vision.LineupDirection.LEFT));
+        joystick.rightTrigger().debounce(0.05).whileTrue(new ReefCenterer(drivetrain, driveRobotCentric, m_Vision, Vision.LineupDirection.RIGHT));
 
         // SysID Commands
         /**
