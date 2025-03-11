@@ -30,7 +30,10 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DisableAlgae;
+import frc.robot.commands.LockTrapDoor;
+import frc.robot.commands.ReleaseTrapDoor;
 import frc.robot.commands.RemoveAlgae;
+import frc.robot.commands.RunClimber;
 import frc.robot.commands.StoreAlgae;
 import frc.robot.commands.drive.ReefCenterer;
 import frc.robot.commands.elevator.KeepElevatorPosition;
@@ -45,6 +48,7 @@ import frc.robot.commands.manipulator.Shoot;
 import frc.robot.commands.manipulator.ShooterReverse;
 import frc.robot.generated.DrivetrainConfigs;
 import frc.robot.subsystems.AlgaeArm;
+import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Manipulator;
@@ -98,6 +102,7 @@ public class RobotContainer {
 
     public final Elevator elevator = new Elevator();
     public final Manipulator manipulator = new Manipulator();
+    public final Climber climber = new Climber();
     
     private SlewRateLimiter angle_Limiter;
     private SlewRateLimiter x_Limiter;
@@ -144,10 +149,14 @@ public class RobotContainer {
         //////////////////////////////////////// Manipulator Controls (Operator Joystick) //////////////////////////////////////////////
         operatorJoystick.leftTrigger().onTrue(new Intake(manipulator).andThen(new BackCoralToSensor(manipulator)) );
         operatorJoystick.rightTrigger().or(joystick.rightBumper()).onTrue(new Shoot(manipulator) );
-        //operatorJoystick.start().whileTrue(new ShooterReverse(manipulator));
+        operatorJoystick.start().whileTrue(new ShooterReverse(manipulator));
+
+        operatorJoystick.povRight().onTrue(new RemoveAlgae(algaeArm));
+        operatorJoystick.povLeft().onTrue(new StoreAlgae(algaeArm));
+
+        operatorJoystick.leftBumper().and(operatorJoystick.rightBumper().and(operatorJoystick.povDown())).onTrue(new ReleaseTrapDoor(climber));
+        operatorJoystick.povUp().onTrue(new LockTrapDoor(climber));
   
-        rightTrigger.whileTrue(new RemoveAlgae(algaeArm));
-        leftTrigger.whileTrue(new StoreAlgae(algaeArm));
         algaeArm.setDefaultCommand(new DisableAlgae(algaeArm));
         //////////////////////////////////////// Elevator Controls (Operator Joystick) //////////////////////////////////////////////
         switch(Constants.Elevator.elevatorMode) {
@@ -285,6 +294,8 @@ public class RobotContainer {
                         .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
             ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
         );
+
+        climber.setDefaultCommand(new RunClimber(climber, operatorJoystick::getRightY));
 
         
     }

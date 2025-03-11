@@ -149,4 +149,15 @@ public class Constants {
         public static final int wheelMotorId = 21;
         
     }
+
+    public static final class ClimberConstants {
+        public static final int climberMotor = 22;
+        public static final double ratchetUnlockedAngle = 0;
+        public static final double ratchedLockedAngle = 10;
+        public static final double frontReleasedAngle = 0;
+        public static final double frontLockedAngle = 20;
+        public static final double backLockedAngle = 20;
+        public static final double backReleasedAngle = 0;
+
+    }
 }
