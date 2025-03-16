@@ -28,9 +28,9 @@ private Vision.LineupDirection m_Direction;
   private boolean shouldTryLineup = false;
   private boolean isLinedUp = false;
 
-  private final double rotationGain = 9.0;
-  private final double yGain = 19.2;
-  private final double xGain = 19.2;
+  private final double rotationGain = 12.0;
+  private final double yGain = 22.2;
+  private final double xGain = 22.2;
 
 
   private ProfiledPIDController m_RotationController = new ProfiledPIDController(rotationGain, 0, 0, new Constraints(1.0, 1.0));
@@ -54,7 +54,7 @@ private Vision.LineupDirection m_Direction;
 
   @Override
   public void initialize() {
-    shouldTryLineup = m_Vision.initializeReefLineup(m_Direction);
+    shouldTryLineup = m_Vision.initializeReefLineup(m_Direction, m_drivetrain.getState().Pose);
     m_Vision.ledOn();
   }
 

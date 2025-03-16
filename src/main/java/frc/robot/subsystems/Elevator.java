@@ -31,7 +31,7 @@ public class Elevator extends SubsystemBase {
 
   private final MotionMagicVoltage m_mmReq = new MotionMagicVoltage(0); 
 
-  private double currentLevel = 1; // Default level if setLevel(void) is called without previously calling setLevel(int level)
+  private double currentLevel = Constants.Elevator.l1Height; // Default level if setLevel(void) is called without previously calling setLevel(int level)
   private double currentVoltage = 0.0; // Default voltage is setVoltage(void) is called without previously calling setVoltage()
                                        // for debugging only, bad way to control elevator height !!
   

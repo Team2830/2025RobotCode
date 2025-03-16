@@ -12,6 +12,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -204,7 +205,7 @@ public class RobotContainer {
         /**
          * Slow Field Centric Driving Mode                  -- Applied while Right Bumper Held
          */
-        joystick.leftBumper().or(elevavorIsHighTrigger).and(() -> DriverStation.isTeleopEnabled()).whileTrue(
+        joystick.leftBumper()./*or(elevavorIsHighTrigger).*/and(() -> DriverStation.isTeleopEnabled()).whileTrue(
                 drivetrain.applyRequest(() -> drive
                         .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed * 0.3)
                         .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed * 0.3)
@@ -351,10 +352,10 @@ public class RobotContainer {
                     break;
                 default:
                     // NOTE: This is what is used in competition
-                    operatorJoystick.a().onTrue(new SetElevatorLevel(elevator, 0.3));
-                    operatorJoystick.b().onTrue(new SetElevatorLevel(elevator, 9));
-                    operatorJoystick.x().onTrue(new SetElevatorLevel(elevator, 27));
-                    operatorJoystick.y().onTrue(new SetElevatorLevel(elevator, 51.5));
+                    operatorJoystick.a().onTrue(new SetElevatorLevel(elevator, Constants.Elevator.l1Height));
+                    operatorJoystick.b().onTrue(new SetElevatorLevel(elevator, Constants.Elevator.l2Height));
+                    operatorJoystick.x().onTrue(new SetElevatorLevel(elevator, Constants.Elevator.l3Height));
+                    operatorJoystick.y().onTrue(new SetElevatorLevel(elevator, Constants.Elevator.l4Height));
                     operatorJoystick.back()
                             .whileTrue(new ManualElevator(elevator, () -> (operatorJoystick.getRightY() * -0.25)));
                     break;

@@ -59,17 +59,18 @@ public class Vision {
 
     // TODO: This can still be optimized to eliminate situations where we look at the wrong tag
     // Can return null if there is not a suitable target
-    private PhotonTrackedTarget getTarget(PhotonPipelineResult result) {
+    private PhotonTrackedTarget getTarget(PhotonPipelineResult result, Pose2d drivetrainPose) {
         PhotonTrackedTarget bestTarget = null;
-        double bestArea = 0;
+        double bestAngleDifference = 45; // Kevin's favorite number
         
         for(PhotonTrackedTarget currentTarget : result.getTargets()) {
-            if(Math.abs(currentTarget.getYaw()) < 45){
-                if(currentTarget.getArea() > bestArea) {
-                    bestTarget = currentTarget;
-                    bestArea = currentTarget.getArea();  
-                }
-            } 
+            Rotation2d currentAngleDifference = drivetrainPose.getRotation().rotateBy(Rotation2d.k180deg).minus(m_Field.getTagPose(currentTarget.getFiducialId()).get().getRotation().toRotation2d());
+            double angleDifferenceDouble = currentAngleDifference.getDegrees();
+
+            if(Math.abs(angleDifferenceDouble) < bestAngleDifference && Math.abs(angleDifferenceDouble) < 30) {
+                bestAngleDifference = Math.abs(angleDifferenceDouble);
+                bestTarget = currentTarget;
+            }
         }
 
         return bestTarget;
@@ -85,7 +86,7 @@ public class Vision {
      * @param direction Lineup to the left or right.
      * @return Whether an AprilTag was seen to lineup to.
      */
-    public boolean initializeReefLineup(LineupDirection direction) {
+    public boolean initializeReefLineup(LineupDirection direction, Pose2d drivetrainPose) {
 
         List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
         
@@ -94,7 +95,7 @@ public class Vision {
             
             try {
                 m_LocalPoseEstimator.update(result);
-                PhotonTrackedTarget target = getTarget(result);
+                PhotonTrackedTarget target = getTarget(result, drivetrainPose);
                 if(target != null) {
                     tagToLookAt = target.getFiducialId();
                 } else {
