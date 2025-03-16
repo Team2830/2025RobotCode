@@ -28,9 +28,9 @@ private Vision.LineupDirection m_Direction;
   private boolean shouldTryLineup = false;
   private boolean isLinedUp = false;
 
-  private final double rotationGain = 5.0;
-  private final double yGain = 12.2;
-  private final double xGain = 12.2;
+  private final double rotationGain = 9.0;
+  private final double yGain = 19.2;
+  private final double xGain = 19.2;
 
 
   private ProfiledPIDController m_RotationController = new ProfiledPIDController(rotationGain, 0, 0, new Constraints(1.0, 1.0));

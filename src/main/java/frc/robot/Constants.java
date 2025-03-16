@@ -134,7 +134,7 @@ public class Constants {
         public static final double l1Height = -1 - elevatorBaseHeight;
         public static final double l2Height = 9 - elevatorBaseHeight;
         public static final double l3Height = 27 - elevatorBaseHeight;
-        public static final double l4Height = 51 - elevatorBaseHeight;
+        public static final double l4Height = 51.5 - elevatorBaseHeight;
     }
 
     public static final class Manipulator {
