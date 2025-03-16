@@ -4,9 +4,6 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Newton;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -29,12 +26,6 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.Unit;
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /** Add your docs here. */
@@ -51,9 +42,10 @@ public class Vision {
     private PhotonPoseEstimator m_LocalPoseEstimator = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCam);
     private Pose3d m_RelevantTagLocation;
     private Pose3d m_GoalLocation;
+
     private final Translation2d LEFT_OFFSET = new Translation2d(Units.inchesToMeters(19.0), Units.inchesToMeters(-6.5));
     private final Translation2d RIGHT_OFFSET = new Translation2d(Units.inchesToMeters(19.0), Units.inchesToMeters(6.5)); 
-    // private final Field2d m_Field2d = new Field2d();
+
     private int tagToLookAt = 0;
     private boolean usingLocalPoseEstimate = false;
 
@@ -65,21 +57,21 @@ public class Vision {
         return usingLocalPoseEstimate;
     }
 
+    // TODO: This can still be optimized to eliminate situations where we look at the wrong tag
+    // Can return null if there is not a suitable target
     private PhotonTrackedTarget getTarget(PhotonPipelineResult result) {
         PhotonTrackedTarget bestTarget = null;
         double bestArea = 0;
         
         for(PhotonTrackedTarget currentTarget : result.getTargets()) {
-            if(Math.abs(currentTarget.getYaw())<45){
-            if(currentTarget.getArea() > bestArea) {
-                bestTarget = currentTarget;
-                bestArea = currentTarget.getArea();
-                
-            }
+            if(Math.abs(currentTarget.getYaw()) < 45){
+                if(currentTarget.getArea() > bestArea) {
+                    bestTarget = currentTarget;
+                    bestArea = currentTarget.getArea();  
+                }
+            } 
         }
 
-        
-    }
         return bestTarget;
     }
 
@@ -174,8 +166,6 @@ public class Vision {
     }
 
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d previousEstimatedRobotPose) {
-        // m_GlobalPoseEstimator.setReferencePose(previousEstimatedRobotPose);
-
         List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
         
         if( ! results.isEmpty()) {

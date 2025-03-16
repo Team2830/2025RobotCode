@@ -123,17 +123,7 @@ public class Elevator extends SubsystemBase {
   public void maintainLevel(){
     // positive rotations will make the elevator carridge travel up. 
     // negative rotations will make the elevator carridge travel down.
- 
-        if((m_RightMotorDriver.getPosition().getValueAsDouble() * Constants.Elevator.inchesPerRot < 3.5) && currentLevel < 6) {
-          m_RightMotorDriver.setVoltage(0);
-          m_RightMotorDriver.setPosition(0);
-        } else {
-          // m_RightMotorDriver.setVoltage(0);
-          // m_RightMotorDriver.setPosition(0);
-          m_RightMotorDriver.feed();
-          m_RightMotorDriver.setControl(m_mmReq.withPosition(inchesToRotations(currentLevel)).withSlot(0));
-        }
-        
+    m_RightMotorDriver.setControl(m_mmReq.withPosition(inchesToRotations(currentLevel)).withSlot(0));        
   }
 
   /* inchesToRotations(double inches) Converts inches to rotations of motor shaft for elevator. */
@@ -157,6 +147,7 @@ public class Elevator extends SubsystemBase {
   public void setVoltage() {
     m_RightMotorDriver.setVoltage(currentVoltage);
   }
+
 /* maintainElevatorPosition() - Runs motor to maintain position as recorded by the internal encoder */
   public void maintainElevatorPosition() {
     double position = m_RightMotorDriver.getPosition().getValueAsDouble();
@@ -189,9 +180,8 @@ public class Elevator extends SubsystemBase {
   }
 
   public void debugElevatorVoltageSmartDashboard() {
-    // SmartDashboard.putNumber("Current Voltage: ", currentVoltage);
-    // SmartDashboard.putNumber("Rotations per Second",m_RightMotorDriver.getVelocity().getValueAsDouble());
-    
+    SmartDashboard.putNumber("Current Voltage: ", currentVoltage);
+    SmartDashboard.putNumber("Rotations per Second",m_RightMotorDriver.getVelocity().getValueAsDouble());
   }
   public boolean lockAlgaeArmDown() {
     boolean lockDown = true;
@@ -199,11 +189,9 @@ public class Elevator extends SubsystemBase {
       lockDown = false;
     }
     return lockDown;
-    // return false;
   }
 
   public double getLevel() {
-    // return 1.0;
     return currentLevel;
   }
 }

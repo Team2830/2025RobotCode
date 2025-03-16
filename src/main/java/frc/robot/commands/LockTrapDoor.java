@@ -14,7 +14,6 @@ public class LockTrapDoor extends Command {
   public LockTrapDoor(Climber climber) {
     this.climber = climber;
     addRequirements(climber);
-    // Use addRequirements() here to declare subsystem dependencies.
   }
 
   // Called when the command is initially scheduled.

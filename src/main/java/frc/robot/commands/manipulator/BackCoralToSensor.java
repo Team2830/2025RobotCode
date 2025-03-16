@@ -1,7 +1,6 @@
 package frc.robot.commands.manipulator;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants;
 import frc.robot.subsystems.Manipulator;
 
 public class BackCoralToSensor extends Command {
@@ -24,7 +23,7 @@ public class BackCoralToSensor extends Command {
 
   @Override
   public void end(boolean interrupted) {
-  m_manipulator.stopShooterMotor();
+    m_manipulator.stopShooterMotor();
   }
 
   @Override

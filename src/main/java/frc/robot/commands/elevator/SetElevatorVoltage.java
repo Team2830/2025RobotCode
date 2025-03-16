@@ -5,7 +5,9 @@ import frc.robot.subsystems.Elevator;
 public class SetElevatorVoltage extends Command {
   private Elevator m_elevator;
   private double m_voltage;
-  /** Creates a new ElevatorManual. 
+  
+  /** 
+   * Creates a new ElevatorManual. 
    * Should be called to adjust the voltage being sent to the motors when MaintainElevatorVoltage is
    * being used as a default command. This is done when the elevator is in mode 2 - debugging with 
    * set voltage mode, as defined in Constants.Elevator.

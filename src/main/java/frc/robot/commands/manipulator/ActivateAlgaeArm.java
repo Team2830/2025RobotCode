@@ -18,7 +18,6 @@ public class ActivateAlgaeArm extends Command {
     this.algaeArm = algaeArm;
     this.elevator = elevator;
     addRequirements(this.algaeArm, this.elevator);
-    // Use addRequirements() here to declare subsystem dependencies.
   }
 
   // Called when the command is initially scheduled.
@@ -35,8 +34,7 @@ public class ActivateAlgaeArm extends Command {
     else {
       algaeArm.setRotations(0.25);
       algaeArm.setWheelSpeed(1.0);
-    }
-    
+    } 
   }
 
   // Called once the command ends or is interrupted.

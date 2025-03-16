@@ -155,7 +155,6 @@ public class Constants {
         public static final double l1Height = 0.3 - elevatorBaseHeight;
         public static final double l2Height = 9 - elevatorBaseHeight;
         public static final double l3Height = 27 - elevatorBaseHeight;
-        //public static final double l4Height = 51.5 - elevatorBaseHeight;
         public static final double l4Height = 51.5 - elevatorBaseHeight;
     }
     
@@ -177,6 +176,7 @@ public class Constants {
     }
 
     public static final class ClimberConstants {
+        public static final boolean usingClimber = false;
         public static final int climberMotor = 22;
         public static final double ratchetUnlockedAngle = 0;
         public static final double ratchedLockedAngle = 10;

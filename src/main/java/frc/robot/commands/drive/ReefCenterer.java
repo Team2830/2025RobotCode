@@ -40,13 +40,12 @@ private Vision.LineupDirection m_Direction;
   private boolean foundY = false;
   private boolean foundX = false;
 
-      private final SwerveRequest.RobotCentric driveRobotCentric = new SwerveRequest.RobotCentric()
-            .withDriveRequestType(DriveRequestType.Velocity); // Use open-loop control for drive motors
+  private final SwerveRequest.RobotCentric driveRobotCentric = new SwerveRequest.RobotCentric()
+      .withDriveRequestType(DriveRequestType.Velocity); // Use velocity closed-loop control for drive motors
 
 
   public ReefCenterer (CommandSwerveDrivetrain drivetrain, SwerveRequest.RobotCentric driveRobotCentric,Vision vision, Vision.LineupDirection direction) {
     this.m_drivetrain = drivetrain;
-    // this.m_driveRobotCentric = driveRobotCentric;
     this.m_Vision = vision;
     this.m_Direction = direction;
 
@@ -122,11 +121,6 @@ private Vision.LineupDirection m_Direction;
     if(foundRotation && foundY && foundX && foundFineRotation){
       isLinedUp = true;
     }
-    if(isLinedUp) {
-      m_Vision.ledOff();
-    } else {
-      m_Vision.ledFlash();
-    }
 
     final double appliedX = x;
     final double appliedY = y;
@@ -136,14 +130,17 @@ private Vision.LineupDirection m_Direction;
         driveRobotCentric.withVelocityX(appliedX)
             .withVelocityY(appliedY)
             .withRotationalRate(appiedRotation)
-    );
-    
-
-}
+      );
+  }
 
   @Override
   public void end(boolean interrupted) {
-    m_Vision.ledOff();
+    if(isLinedUp) {
+      m_Vision.ledOff();
+    } else {
+      m_Vision.ledFlash();
+    }
+    
 
     foundRotation = false;
     foundY = false;

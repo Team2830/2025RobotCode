@@ -15,7 +15,6 @@ public class DeactivateAlgaeArm extends Command {
   public DeactivateAlgaeArm(AlgaeArm algaeArm) {
     this.algaeArm = algaeArm;
     addRequirements(this.algaeArm);
-    // Use addRequirements() here to declare subsystem dependencies.
   }
 
   // Called when the command is initially scheduled.

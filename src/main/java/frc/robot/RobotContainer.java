@@ -6,9 +6,6 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
-import java.lang.management.OperatingSystemMXBean;
-import java.util.jar.Attributes.Name;
-
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -17,20 +14,14 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -38,7 +29,6 @@ import frc.robot.commands.RunClimber;
 import frc.robot.commands.drive.BackToCoralStation;
 import frc.robot.commands.drive.ReefCenterer;
 import frc.robot.commands.elevator.KeepElevatorPosition;
-import frc.robot.commands.elevator.L2;
 import frc.robot.commands.elevator.MaintainElevatorVoltage;
 import frc.robot.commands.elevator.ManualElevator;
 import frc.robot.commands.elevator.SetElevatorLevel;
@@ -63,9 +53,8 @@ public class RobotContainer {
     private SlewRateLimiter x_Limiter; // limiter for Driver X speed
     private SlewRateLimiter y_Limiter; // limiter for Driver y speed
     private final CommandXboxController operatorJoystick = new CommandXboxController(1);
-    private Trigger leftTrigger; // Trigger event for operator left trigger
-    private Trigger rightTrigger; // Trigger event for operator right trigger
-    private Trigger elevavorIsHighTrigger;    
+    private Trigger elevavorIsHighTrigger;  
+
     /* Command Drivetrain Initializations */
     public final CommandSwerveDrivetrain drivetrain = DrivetrainConfigs.createDrivetrain();
 
@@ -84,12 +73,12 @@ public class RobotContainer {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
      private final ProfiledFieldCentricFacingAngle drivetrainTargetAngle =
         new ProfiledFieldCentricFacingAngle(new TrapezoidProfile.Constraints(MaxAngularRate, MaxAngularRate / 0.25))
             .withDeadband(MaxSpeed * 0.03).withRotationalDeadband(MaxAngularRate * 0.03) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+
 
     /* Other subsystem Initializations */
     public final Elevator elevator = new Elevator();
@@ -98,25 +87,20 @@ public class RobotContainer {
     public final Climber climber = new Climber();
     private Vision m_Vision = new Vision();
 
+
     /* Autonomous Command Declaration */
     private final SendableChooser<Command> autoChooser;
 
 
     public RobotContainer() {
-
         // Limiters for Driver Joystick
         angle_Limiter = new SlewRateLimiter(Constants.Controller.joystickSlewLimiter_angle);
         x_Limiter = new SlewRateLimiter(Constants.Controller.joystickSlewLimiter_xy);
         y_Limiter = new SlewRateLimiter(Constants.Controller.joystickSlewLimiter_xy);
 
-        // Trigger Events for Operator Left/Right Trigger Presses
-        leftTrigger = new Trigger(() -> operatorJoystick.getLeftTriggerAxis() > 0.2);
-        rightTrigger = new Trigger(() -> operatorJoystick.getRightTriggerAxis() > 0.2);
         elevavorIsHighTrigger = new Trigger(() -> elevator.getLevel() > 2);
 
         // Named Commands (Needed for Path Planner Autos)
-        NamedCommands.registerCommand("Print Before", new PrintCommand("Running Before"));
-        NamedCommands.registerCommand("Print After", new PrintCommand("Running After"));
         NamedCommands.registerCommand("Shoot", new Shoot(manipulator));
         NamedCommands.registerCommand("Intake", new Intake(manipulator).andThen(new BackCoralToSensor(manipulator)));
         NamedCommands.registerCommand("BackUpCoral", new BackCoralToSensor(manipulator));
@@ -135,7 +119,7 @@ public class RobotContainer {
         configureBindings();
 
         // Read Selected Autonomous
-        autoChooser = AutoBuilder.buildAutoChooser("New Auto");
+        autoChooser = AutoBuilder.buildAutoChooser("Two piece auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
     }
 
@@ -148,10 +132,10 @@ public class RobotContainer {
          * Manipulator Controls
          **/
         // IMPORTANT: Driver Right Trigger Will Also Shoot, Rest Of Controls For Operator Only
-        // Left Bumper   - Intake
-        // Right Bumper  - Shoot
-        // Left Trigger  - Put Away Algae Arm
-        // Right Trigger - Activate Algae Arm
+        // Left Trigger   - Intake
+        // Right Trigger  - Shoot
+        // Left Bumper  - Put Away Algae Arm
+        // Right Bumper - Activate Algae Arm
         // Start Button  - Reverse Shooter Motors 
         operatorJoystick.leftTrigger().onTrue(new Intake(manipulator).andThen(new BackCoralToSensor(manipulator)));
         operatorJoystick.rightTrigger().or(joystick.rightBumper()).onTrue(new Shoot(manipulator));
@@ -169,14 +153,23 @@ public class RobotContainer {
         // Press Y - Set Elevator to L4
         configureElevatorBindings(Constants.Elevator.elevatorMode); // See Method or Constants Def. for Info On Other Modes
 
+        if(Constants.ClimberConstants.usingClimber) {
+            /**
+             * Climber Controls
+             * Womp Womp
+             */
+            climber.setDefaultCommand(new RunClimber(climber, operatorJoystick::getRightY));
+        }
+        
+
         /**
-         * Climber Controls
-         * Womp Womp
+         * Driver Controls:
+         * Start: Reset Field Oriented
+         * Back: Brake Mode
+         * Left and Right Triggers: Reef Auto Align
+         * Left Bumper: Slow Mode
          */
-        climber.setDefaultCommand(new RunClimber(climber, operatorJoystick::getRightY));
-
         /************************************************ Driver Controls **************************************************/
-
         joystick.start().and(new Trigger(() -> MaxSpeed > 0)).onTrue(new InstantCommand(drivetrain::resetFieldOriented, drivetrain));
         joystick.back().whileTrue(drivetrain.applyRequest(() -> brake));
         joystick.start().and(new Trigger(() -> MaxSpeed < 0)).whileTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
@@ -217,14 +210,6 @@ public class RobotContainer {
                         .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed * 0.3)
                         .withRotationalRate(-angle_Limiter.calculate(joystick.getRightX()) * MaxAngularRate * 0.3)));
 
-        /**
-         * Slow Robot Centric Driving Mode                  -- Applied while Left Bumper Held (left bumper used for shooter)
-         *
-        joystick.leftBumper().whileTrue(
-                drivetrain.applyRequest(() -> driveRobotCentric
-                        .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed * 0.3)
-                        .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed * 0.3)
-                        .withRotationalRate(-angle_Limiter.calculate(joystick.getRightX()) * MaxAngularRate * 0.3))); */ 
 
         /**
          * Sys ID Button Mappings For Drivetrain
@@ -238,13 +223,6 @@ public class RobotContainer {
      * getAutonomousCommand - Run the Path Selected from the Auto Chooser
      **/
     public Command getAutonomousCommand() {
-        // return new SequentialCommandGroup(
-        //     new PrintCommand("Printed Before"),
-        //     new SetElevatorLevel(elevator, Constants.Elevator.l3Height),
-        //     new WaitCommand(1.0),
-        //     new Shoot(manipulator),
-        //     new PrintCommand("Printed After")
-        // );
         return autoChooser.getSelected();
     }
 
@@ -256,10 +234,10 @@ public class RobotContainer {
         joystick.leftBumper().and(joystick.start()).onTrue(Commands.runOnce(SignalLogger::start));
         joystick.rightBumper().and(joystick.start()).onTrue(Commands.runOnce(SignalLogger::stop));
         drivetrain.registerTelemetry(logger::telemeterize);
-        joystick.povUp().whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward)); // First
-        joystick.povDown().whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse)); // Second
-        joystick.povLeft().whileTrue(drivetrain.sysIdDynamic(Direction.kForward)); // Third
-        joystick.povRight().whileTrue(drivetrain.sysIdDynamic(Direction.kReverse)); // Fourth
+        joystick.povUp().and(joystick.start()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward)); // First
+        joystick.povDown().and(joystick.start()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse)); // Second
+        joystick.povLeft().and(joystick.start()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward)); // Third
+        joystick.povRight().and(joystick.start()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse)); // Fourth
     }
 
     /**
@@ -316,6 +294,7 @@ public class RobotContainer {
             ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
 
         );
+
         /////////////////////////////// loading station alignment /////////////////////////
         joystick.x().and(joystick.a().negate().and(joystick.y().negate())).debounce(Constants.Controller.debounce).onTrue(
             drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.angle_LeftCoralStation)
@@ -371,6 +350,7 @@ public class RobotContainer {
                             .whileTrue(elevator.sysIdQuasistatic(Direction.kReverse));
                     break;
                 default:
+                    // NOTE: This is what is used in competition
                     operatorJoystick.a().onTrue(new SetElevatorLevel(elevator, 0.3));
                     operatorJoystick.b().onTrue(new SetElevatorLevel(elevator, 9));
                     operatorJoystick.x().onTrue(new SetElevatorLevel(elevator, 27));
