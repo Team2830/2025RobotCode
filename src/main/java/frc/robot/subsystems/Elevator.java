@@ -31,7 +31,7 @@ public class Elevator extends SubsystemBase {
 
   private final MotionMagicVoltage m_mmReq = new MotionMagicVoltage(0); 
 
-  private int currentLevel = 1; // Default level if setLevel(void) is called without previously calling setLevel(int level)
+  private double currentLevel = 1; // Default level if setLevel(void) is called without previously calling setLevel(int level)
   private double currentVoltage = 0.0; // Default voltage is setVoltage(void) is called without previously calling setVoltage()
                                        // for debugging only, bad way to control elevator height !!
   
@@ -108,40 +108,32 @@ public class Elevator extends SubsystemBase {
   public void periodic() {
     debugElevatorHeightSmartDashboard();
     debugElevatorVoltageSmartDashboard();
+    maintainLevel();
+    SmartDashboard.putData(this);
   }
 
   /* setLevel(int level) - Sets level that the elevator will try to target. Does not control the motor directly, 
      needs setLevel(void) to drive the motor */
-  public void setLevel(int level){
-    if (level > 0 && level < 5) currentLevel = level;
+  public void setLevel(double level){
+    currentLevel = level;
   }
 
 
   /* setLevel(void) - Use motion magic to target position set as currentLevel. */
-  public void setLevel(){
+  public void maintainLevel(){
     // positive rotations will make the elevator carridge travel up. 
     // negative rotations will make the elevator carridge travel down.
-    switch(currentLevel){
-      case 1:
-        // if(m_RightMotorDriver.getPosition().getValueAsDouble() * Constants.Elevator.inchesPerRot < 3.5) {
-        //   m_RightMotorDriver.setVoltage(0);
-        //   m_RightMotorDriver.setPosition(0);
-        // } else {
-          m_RightMotorDriver.setControl(m_mmReq.withPosition(inchesToRotations(Constants.Elevator.l1Height)).withSlot(0));
-        // }
-        break;
-      case 2:
-        m_RightMotorDriver.setControl(m_mmReq.withPosition(inchesToRotations(Constants.Elevator.l2Height)).withSlot(0));
-        break;
-      case 3:
-        m_RightMotorDriver.setControl(m_mmReq.withPosition(inchesToRotations(Constants.Elevator.l3Height)).withSlot(0));
-        break;
-      case 4:
-        m_RightMotorDriver.setControl(m_mmReq.withPosition(inchesToRotations(Constants.Elevator.l4Height)).withSlot(0));
-        break;
-      default:
-        m_RightMotorDriver.set(0);
-    }
+ 
+        if((m_RightMotorDriver.getPosition().getValueAsDouble() * Constants.Elevator.inchesPerRot < 3.5) && currentLevel < 6) {
+          m_RightMotorDriver.setVoltage(0);
+          m_RightMotorDriver.setPosition(0);
+        } else {
+          // m_RightMotorDriver.setVoltage(0);
+          // m_RightMotorDriver.setPosition(0);
+          m_RightMotorDriver.feed();
+          m_RightMotorDriver.setControl(m_mmReq.withPosition(inchesToRotations(currentLevel)).withSlot(0));
+        }
+        
   }
 
   /* inchesToRotations(double inches) Converts inches to rotations of motor shaft for elevator. */
@@ -197,9 +189,22 @@ public class Elevator extends SubsystemBase {
   }
 
   public void debugElevatorVoltageSmartDashboard() {
-    SmartDashboard.putNumber("Current Voltage: ", currentVoltage);
-    SmartDashboard.putNumber("Rotations per Second",m_RightMotorDriver.getVelocity().getValueAsDouble());
+    // SmartDashboard.putNumber("Current Voltage: ", currentVoltage);
+    // SmartDashboard.putNumber("Rotations per Second",m_RightMotorDriver.getVelocity().getValueAsDouble());
     
+  }
+  public boolean lockAlgaeArmDown() {
+    boolean lockDown = true;
+    if (currentLevel != 1) {
+      lockDown = false;
+    }
+    return lockDown;
+    // return false;
+  }
+
+  public double getLevel() {
+    // return 1.0;
+    return currentLevel;
   }
 }
  

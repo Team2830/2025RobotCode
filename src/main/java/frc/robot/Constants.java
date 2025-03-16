@@ -1,6 +1,31 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+
 public class Constants {
+
+    public static final class Field {
+        // Rotation Targets Used By Field Oriented w/ Constant
+        public static final Rotation2d angle_LeftCloseReef = Rotation2d.fromDegrees(120);
+        public static final Rotation2d angle_MiddleCloseReef = Rotation2d.fromDegrees(180);
+        public static final Rotation2d angle_RightCloseReef = Rotation2d.fromDegrees(-120);
+
+        public static final Rotation2d angle_LeftFarReef = Rotation2d.fromDegrees(60);
+        public static final Rotation2d angle_MiddleFarReef = Rotation2d.fromDegrees(0);
+        public static final Rotation2d angle_RightFarReef = Rotation2d.fromDegrees(-60);
+
+        public static final Rotation2d angle_LeftCoralStation = Rotation2d.fromDegrees(126);
+        public static final Rotation2d angle_RightCoralStation= Rotation2d.fromDegrees(234);
+    }
+
+    public static final class Controller {
+        // Joystick Slew Limiter Values
+        public static final double joystickSlewLimiter_angle = 8;
+        public static final double joystickSlewLimiter_xy = 4;
+
+        public static final double debounce = 0.03;
+    }
+
     public static final class Swerve {
         // Routine to Apply for sysID (0 - translation; 1 - steer; 2 - rotation)
         public static final int RoutineToApplySysID = 2;
@@ -55,10 +80,6 @@ public class Constants {
 
         public static final boolean kBackRightSteerMotorInverted = true;
         public static final boolean kBackRightEncoderInverted = false;
-
-        // Joystick Slew Limiter Values
-        public static final double joystickSlewLimiter_angle = 8;
-        public static final double joystickSlewLimiter_xy = 4;
 
         // max currents / max torque control for drive motors (keep positive)
         public static final double peakForwardTorqueCurrent = 130;
@@ -131,11 +152,13 @@ public class Constants {
         // carridge should go to for that level.
         // elevatorBaseHeight is subtracted to find the actual distance the elevator
         // must travel. only edit the constant !!
-        public static final double l1Height = -1 - elevatorBaseHeight;
+        public static final double l1Height = 0.3 - elevatorBaseHeight;
         public static final double l2Height = 9 - elevatorBaseHeight;
         public static final double l3Height = 27 - elevatorBaseHeight;
-        public static final double l4Height = 51 - elevatorBaseHeight;
+        //public static final double l4Height = 51.5 - elevatorBaseHeight;
+        public static final double l4Height = 51.5 - elevatorBaseHeight;
     }
+    
 
     public static final class Manipulator {
         public static final int shooterMotorID = 16;
@@ -148,6 +171,9 @@ public class Constants {
         public static final int angleMotorId = 20;
         public static final int wheelMotorId = 21;
         
+        public static final double kP = 0.001;
+        public static final double kI = 0.0;
+        public static final double kD = 0.0;
     }
 
     public static final class ClimberConstants {

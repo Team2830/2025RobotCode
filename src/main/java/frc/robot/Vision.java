@@ -51,8 +51,8 @@ public class Vision {
     private PhotonPoseEstimator m_LocalPoseEstimator = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCam);
     private Pose3d m_RelevantTagLocation;
     private Pose3d m_GoalLocation;
-    private final Translation2d LEFT_OFFSET = new Translation2d(Units.inchesToMeters(19.5), Units.inchesToMeters(-6.5));
-    private final Translation2d RIGHT_OFFSET = new Translation2d(Units.inchesToMeters(19.5), Units.inchesToMeters(6.5)); 
+    private final Translation2d LEFT_OFFSET = new Translation2d(Units.inchesToMeters(19.0), Units.inchesToMeters(-6.5));
+    private final Translation2d RIGHT_OFFSET = new Translation2d(Units.inchesToMeters(19.0), Units.inchesToMeters(6.5)); 
     // private final Field2d m_Field2d = new Field2d();
     private int tagToLookAt = 0;
     private boolean usingLocalPoseEstimate = false;
@@ -70,12 +70,16 @@ public class Vision {
         double bestArea = 0;
         
         for(PhotonTrackedTarget currentTarget : result.getTargets()) {
+            if(Math.abs(currentTarget.getYaw())<45){
             if(currentTarget.getArea() > bestArea) {
                 bestTarget = currentTarget;
                 bestArea = currentTarget.getArea();
+                
             }
         }
 
+        
+    }
         return bestTarget;
     }
 

@@ -28,14 +28,15 @@ private Vision.LineupDirection m_Direction;
   private boolean shouldTryLineup = false;
   private boolean isLinedUp = false;
 
-  private final double rotationGain = 5.0;
-  private final double yGain = 12.2;
-  private final double xGain = 12.2;
+  private final double rotationGain = 9.0;
+  private final double yGain = 19.2;
+  private final double xGain = 19.2;
 
 
   private ProfiledPIDController m_RotationController = new ProfiledPIDController(rotationGain, 0, 0, new Constraints(1.0, 1.0));
   SwerveDrivePoseEstimator m_PoseEstimator;
   private boolean foundRotation = false;
+  private boolean foundFineRotation = false;
   private boolean foundY = false;
   private boolean foundX = false;
 
@@ -85,9 +86,21 @@ private Vision.LineupDirection m_Direction;
     SmartDashboard.putNumber("Rotation Error", error.getRotation().getDegrees());
     rotation = -1.0 * m_RotationController.calculate(error.getRotation().getRadians());
     
-    if(Math.abs(error.getRotation().getDegrees()) < 2.0) {
-      foundRotation = true;
+    if(Math.abs(error.getRotation().getDegrees()) < 5.0) {
+      foundRotation = true; // when true alignment will try to align x and y
     }
+    else {
+      foundRotation = false; //Make false if robot angle is wrong at any point
+    }
+
+    if(Math.abs(error.getRotation().getDegrees()) < 2.0) {
+      foundFineRotation = true; //must be true for command to finish
+    }
+    else {
+      foundFineRotation = false; //Make false if robot angle is wrong at any point
+    }
+
+    SmartDashboard.putBoolean("Found Rotation", foundRotation);
     
     if(foundRotation) {
       y = error.getY() * -yGain;
@@ -95,7 +108,7 @@ private Vision.LineupDirection m_Direction;
     }
     
     if (Math.abs(Units.metersToInches(error.getY())) < 0.5){
-      foundY = foundRotation;
+      foundY = true;
     }
     
     if (foundRotation && foundY) {
@@ -106,8 +119,13 @@ private Vision.LineupDirection m_Direction;
       foundX = foundY;
     }
 
-    if(foundRotation && foundY && foundX){
+    if(foundRotation && foundY && foundX && foundFineRotation){
       isLinedUp = true;
+    }
+    if(isLinedUp) {
+      m_Vision.ledOff();
+    } else {
+      m_Vision.ledFlash();
     }
 
     final double appliedX = x;
@@ -125,11 +143,7 @@ private Vision.LineupDirection m_Direction;
 
   @Override
   public void end(boolean interrupted) {
-    if(isLinedUp) {
-      m_Vision.ledOff();
-    } else {
-      m_Vision.ledFlash();
-    }
+    m_Vision.ledOff();
 
     foundRotation = false;
     foundY = false;
@@ -143,6 +157,5 @@ private Vision.LineupDirection m_Direction;
   @Override
   public boolean isFinished() {
     return (! shouldTryLineup) || isLinedUp;
-
   }
 }

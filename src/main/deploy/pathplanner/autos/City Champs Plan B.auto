@@ -7,7 +7,7 @@
         {
           "type": "named",
           "data": {
-            "name": "L1"
+            "name": "Maintain Level"
           }
         },
         {
@@ -19,7 +19,37 @@
         {
           "type": "named",
           "data": {
-            "name": "Maintain Level"
+            "name": "Auto Align Right"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "L3"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "L1"
           }
         }
       ]

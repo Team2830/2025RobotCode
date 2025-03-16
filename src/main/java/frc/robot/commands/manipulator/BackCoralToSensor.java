@@ -29,6 +29,6 @@ public class BackCoralToSensor extends Command {
 
   @Override
   public boolean isFinished() {
-    return (m_manipulator.isCoralAtBackSensor() == 1);
+    return (m_manipulator.isCoralAtBackSensor() == 1 || m_manipulator.isCoralAtBackSensor() == -1);
   }
 }

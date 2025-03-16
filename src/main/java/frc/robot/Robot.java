@@ -11,6 +11,7 @@ import org.photonvision.EstimatedRobotPose;
 import com.ctre.phoenix6.Utils;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -38,6 +39,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+    SmartDashboard.putBoolean("Auto Command Finished", m_robotContainer.getAutonomousCommand().isFinished());
     m_Vision.debugVision();
     if(kUseVision) {
       Optional<Pose2d> lastPose = m_robotContainer.drivetrain.samplePoseAt(Utils.getCurrentTimeSeconds());
@@ -82,7 +84,27 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
+
+      var alliance = DriverStation.getAlliance();
+      if (alliance.isPresent()) {
+          if (alliance.get() == DriverStation.Alliance.Blue) {
+              if (m_robotContainer.MaxSpeed > 0) {
+              m_robotContainer.MaxSpeed = m_robotContainer.MaxSpeed * -1;
+              }
+          }
+          else {
+            if (m_robotContainer.MaxSpeed < 0) {
+              m_robotContainer.MaxSpeed = m_robotContainer.MaxSpeed * -1;
+            }
+          }
+      }
+    } else {
+      if (m_robotContainer.MaxSpeed < 0) {
+        m_robotContainer.MaxSpeed = m_robotContainer.MaxSpeed * -1;
+      }
     }
+
+    
   }
 
   @Override
