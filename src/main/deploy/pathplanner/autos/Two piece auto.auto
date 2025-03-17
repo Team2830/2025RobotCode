@@ -61,13 +61,26 @@
         {
           "type": "named",
           "data": {
-            "name": "Intake"
+            "name": "Intake Move Out"
           }
         },
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "Right Intake to Front Right"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Right Intake to Front Right"
+                }
+              }
+            ]
           }
         },
         {

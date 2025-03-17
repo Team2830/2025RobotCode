@@ -38,6 +38,7 @@ import frc.robot.commands.manipulator.ActivateAlgaeArm;
 import frc.robot.commands.manipulator.BackCoralToSensor;
 import frc.robot.commands.manipulator.DeactivateAlgaeArm;
 import frc.robot.commands.manipulator.Intake;
+import frc.robot.commands.manipulator.AutoStartIntake;
 import frc.robot.commands.manipulator.Shoot;
 import frc.robot.commands.manipulator.ShooterReverse;
 import frc.robot.generated.DrivetrainConfigs;
@@ -114,6 +115,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Auto Align Right", new ReefCenterer(drivetrain, driveRobotCentric, m_Vision, Vision.LineupDirection.RIGHT));
         NamedCommands.registerCommand("Back to coral station right", new BackToCoralStation(drivetrain, drivetrainTargetAngle, MaxSpeed, true));
         NamedCommands.registerCommand("Back to coral station left", new BackToCoralStation(drivetrain, drivetrainTargetAngle, MaxSpeed, false));
+        NamedCommands.registerCommand("Intake Move Out", new AutoStartIntake(manipulator));
         
 
         // Configure Bindings
@@ -140,6 +142,7 @@ public class RobotContainer {
         // Start Button  - Reverse Shooter Motors 
         operatorJoystick.leftTrigger().onTrue(new Intake(manipulator).andThen(new BackCoralToSensor(manipulator)));
         operatorJoystick.rightTrigger().or(joystick.rightBumper()).onTrue(new Shoot(manipulator));
+        operatorJoystick.povUp().or(operatorJoystick.povUpLeft().or(operatorJoystick.povUpRight()));
         // operatorJoystick.rightBumper().onTrue(new ActivateAlgaeArm(algaeArm, elevator));
         // operatorJoystick.leftBumper().onTrue(new DeactivateAlgaeArm(algaeArm));
         operatorJoystick.start().whileTrue(new ShooterReverse(manipulator)); // bindings interfere with elevator SysID bindings, normally not a problem
