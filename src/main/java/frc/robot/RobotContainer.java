@@ -122,7 +122,15 @@ public class RobotContainer {
         configureBindings();
 
         // Read Selected Autonomous
-        autoChooser = AutoBuilder.buildAutoChooser("Two piece auto");
+        autoChooser = new SendableChooser<Command>();
+
+        autoChooser.setDefaultOption("Do Nothing", new PrintCommand("Nothing!"));
+        autoChooser.addOption("Two Piece Right", new PathPlannerAuto("Two piece auto"));
+        autoChooser.addOption("Two Piece Left", new PathPlannerAuto("Mirrored 2 piece", true));
+        autoChooser.addOption("Drive Straight Left", new PathPlannerAuto( "Drive Straight Left"));
+        autoChooser.addOption("Drive Straight Right",new PathPlannerAuto("Drive Straight Right"));
+        autoChooser.addOption("Drive Straight Center", new PathPlannerAuto("Drive Straight Center"));
+
         SmartDashboard.putData("Auto Mode", autoChooser);
     }
 
