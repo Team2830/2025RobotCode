@@ -158,6 +158,11 @@ public class Elevator extends SubsystemBase {
     }
   }
 
+  public boolean isElevatorAtHeight() {
+    SmartDashboard.putNumber("Elevator Error", inchesToRotations(m_RightMotorDriver.getClosedLoopError().getValue()));
+    return Math.abs(inchesToRotations(m_RightMotorDriver.getClosedLoopError().getValue())) < inchesToRotations(3.5);
+  }
+
   ///////////////////////////////////////////    Debug Methods    ///////////////////////////////////////////
   private void debugElevatorHeightSmartDashboard() {
     double currentInches;

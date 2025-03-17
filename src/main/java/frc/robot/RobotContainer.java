@@ -34,6 +34,7 @@ import frc.robot.commands.elevator.MaintainElevatorVoltage;
 import frc.robot.commands.elevator.ManualElevator;
 import frc.robot.commands.elevator.SetElevatorLevel;
 import frc.robot.commands.elevator.SetElevatorVoltage;
+import frc.robot.commands.elevator.WaitForElevator;
 import frc.robot.commands.manipulator.ActivateAlgaeArm;
 import frc.robot.commands.manipulator.BackCoralToSensor;
 import frc.robot.commands.manipulator.DeactivateAlgaeArm;
@@ -116,6 +117,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Back to coral station right", new BackToCoralStation(drivetrain, drivetrainTargetAngle, MaxSpeed, true));
         NamedCommands.registerCommand("Back to coral station left", new BackToCoralStation(drivetrain, drivetrainTargetAngle, MaxSpeed, false));
         NamedCommands.registerCommand("Intake Move Out", new AutoStartIntake(manipulator));
+        NamedCommands.registerCommand("Wait For Elevator",new WaitForElevator(elevator));
         
 
         // Configure Bindings
@@ -130,6 +132,7 @@ public class RobotContainer {
         autoChooser.addOption("Drive Straight Left", new PathPlannerAuto( "Drive Straight Left"));
         autoChooser.addOption("Drive Straight Right",new PathPlannerAuto("Drive Straight Right"));
         autoChooser.addOption("Drive Straight Center", new PathPlannerAuto("Drive Straight Center"));
+        autoChooser.addOption("Three Piece Right", new PathPlannerAuto("Three Piece Auto"));
 
         SmartDashboard.putData("Auto Mode", autoChooser);
     }
