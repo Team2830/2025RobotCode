@@ -15,7 +15,7 @@ public class BackToCoralStation extends Command {
 
   private Timer m_Timer = new Timer();
 
-  private static final double speed = 0.2;
+  private static final double speed = 0.4;
  
   public BackToCoralStation(CommandSwerveDrivetrain driveTrain, ProfiledFieldCentricFacingAngle driveTrainTargetAngle, double MaxSpeed, boolean isRight) {
     this.m_driveTrain = driveTrain;
@@ -58,6 +58,6 @@ public class BackToCoralStation extends Command {
   // @Override
   public boolean isFinished() {
     System.out.println("Timer: " + m_Timer.get());
-    return m_Timer.hasElapsed(2.0);
+    return m_Timer.hasElapsed(1.0);
   }
 }

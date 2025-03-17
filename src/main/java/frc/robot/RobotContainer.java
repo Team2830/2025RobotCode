@@ -140,8 +140,8 @@ public class RobotContainer {
         // Start Button  - Reverse Shooter Motors 
         operatorJoystick.leftTrigger().onTrue(new Intake(manipulator).andThen(new BackCoralToSensor(manipulator)));
         operatorJoystick.rightTrigger().or(joystick.rightBumper()).onTrue(new Shoot(manipulator));
-        operatorJoystick.rightBumper().onTrue(new ActivateAlgaeArm(algaeArm, elevator));
-        operatorJoystick.leftBumper().onTrue(new DeactivateAlgaeArm(algaeArm));
+        // operatorJoystick.rightBumper().onTrue(new ActivateAlgaeArm(algaeArm, elevator));
+        // operatorJoystick.leftBumper().onTrue(new DeactivateAlgaeArm(algaeArm));
         operatorJoystick.start().whileTrue(new ShooterReverse(manipulator)); // bindings interfere with elevator SysID bindings, normally not a problem
 
         /** 
