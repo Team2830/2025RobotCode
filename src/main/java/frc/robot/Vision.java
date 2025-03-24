@@ -43,8 +43,8 @@ public class Vision {
     private Pose3d m_RelevantTagLocation;
     private Pose3d m_GoalLocation;
 
-    private final Translation2d LEFT_OFFSET = new Translation2d(Units.inchesToMeters(19.0), Units.inchesToMeters(-6.5));
-    private final Translation2d RIGHT_OFFSET = new Translation2d(Units.inchesToMeters(19.0), Units.inchesToMeters(6.5)); 
+    private final Translation2d LEFT_OFFSET = new Translation2d(Units.inchesToMeters(20.5), Units.inchesToMeters(-6.5));
+    private final Translation2d RIGHT_OFFSET = new Translation2d(Units.inchesToMeters(20.5), Units.inchesToMeters(6.5)); 
 
     private int tagToLookAt = 0;
     private boolean usingLocalPoseEstimate = false;

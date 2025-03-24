@@ -115,6 +115,7 @@ public class Elevator extends SubsystemBase {
   /* setLevel(int level) - Sets level that the elevator will try to target. Does not control the motor directly, 
      needs setLevel(void) to drive the motor */
   public void setLevel(double level){
+    // if (AlgaeArm.getInstance().)
     currentLevel = level;
   }
 

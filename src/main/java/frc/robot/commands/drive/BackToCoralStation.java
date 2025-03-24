@@ -1,5 +1,6 @@
 package frc.robot.commands.drive;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
@@ -34,12 +35,21 @@ public class BackToCoralStation extends Command {
 
   @Override
   public void execute() {
+
+    int allianceModifier = 1;
+
+    if(DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == DriverStation.Alliance.Blue) {
+      allianceModifier = -1;
+    }
+
+    final int appliedAllianceModifier = allianceModifier;
+
     m_driveTrain.setControl(
         () -> m_driveTrainTargetAngle.withTargetDirection (
-            m_isRight ? Constants.Field.angle_RightCoralStation : Constants.Field.angle_LeftCoralStation
+            m_isRight ? Constants.Field.correctForAlliance(Constants.Field.angle_RightCoralStation) : Constants.Field.correctForAlliance(Constants.Field.angle_LeftCoralStation)
         )
-        .withVelocityX(speed * m_maxSpeed * (m_isRight ? -1 : -1))
-        .withVelocityY(speed * m_maxSpeed * (m_isRight ? -1 : 1))
+        .withVelocityX(speed * m_maxSpeed * (m_isRight ? -1 : -1) * appliedAllianceModifier)
+        .withVelocityY(speed * m_maxSpeed * (m_isRight ? -1 : 1) * appliedAllianceModifier)
       );
   }
 
@@ -48,7 +58,7 @@ public class BackToCoralStation extends Command {
 
     m_driveTrain.setControl(
         () -> m_driveTrainTargetAngle.withTargetDirection (
-            m_isRight ? Constants.Field.angle_RightCoralStation : Constants.Field.angle_LeftCoralStation
+            m_isRight ? Constants.Field.correctForAlliance(Constants.Field.angle_RightCoralStation) : Constants.Field.correctForAlliance(Constants.Field.angle_LeftCoralStation)
         )
         .withVelocityX(0)
         .withVelocityY(0));

@@ -24,12 +24,22 @@ import frc.robot.Constants;
 
 public class AlgaeArm extends SubsystemBase {
   
- // private SparkMax angleMotor = new SparkMax(Constants.AlgaeArm.angleMotorId, MotorType.kBrushless);
- // private SparkMax wheelMotor = new SparkMax(Constants.AlgaeArm.wheelMotorId, MotorType.kBrushless);
+ private SparkMax angleMotor = new SparkMax(Constants.AlgaeArm.angleMotorId, MotorType.kBrushless);
+ private SparkMax wheelMotor = new SparkMax(Constants.AlgaeArm.wheelMotorId, MotorType.kBrushless);
   private SparkClosedLoopController pid;
 
+  private static AlgaeArm instance;
+
+  public static AlgaeArm getInstance() {
+    if(instance == null) {
+      instance = new AlgaeArm();
+    }
+
+    return instance;
+  }
+
   /** Creates a new AlgaeArm. */
-  public AlgaeArm() {
+  private AlgaeArm() {
     
     double kP = 1.8;
     double kI = 0.0;
@@ -46,11 +56,13 @@ config.closedLoop
     .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
     .pid(kP,kI,kD).positionWrappingEnabled(true).positionWrappingInputRange(0, 1);
     
-
+    SparkMaxConfig wheelConfig = new SparkMaxConfig();
+    wheelConfig.smartCurrentLimit(20);
+    wheelMotor.configure(wheelConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
     
-    //angleMotor.configure(config, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
+    angleMotor.configure(config, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
     
-    //pid = angleMotor.getClosedLoopController();
+    pid = angleMotor.getClosedLoopController();
 
   }
 
@@ -72,7 +84,7 @@ config.closedLoop
   }
 
   public void setWheelSpeed(double speed) {
-    //wheelMotor.set(speed);
+    wheelMotor.set(speed);
   }
 
   @Override

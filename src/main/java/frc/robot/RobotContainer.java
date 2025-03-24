@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.RunClimber;
 import frc.robot.commands.drive.BackToCoralStation;
+import frc.robot.commands.drive.BackUp;
 import frc.robot.commands.drive.ReefCenterer;
 import frc.robot.commands.elevator.KeepElevatorPosition;
 import frc.robot.commands.elevator.MaintainElevatorVoltage;
@@ -38,10 +39,12 @@ import frc.robot.commands.elevator.WaitForElevator;
 import frc.robot.commands.manipulator.ActivateAlgaeArm;
 import frc.robot.commands.manipulator.BackCoralToSensor;
 import frc.robot.commands.manipulator.DeactivateAlgaeArm;
+import frc.robot.commands.manipulator.InchForwardCoral;
 import frc.robot.commands.manipulator.Intake;
 import frc.robot.commands.manipulator.AutoStartIntake;
 import frc.robot.commands.manipulator.Shoot;
 import frc.robot.commands.manipulator.ShooterReverse;
+import frc.robot.commands.manipulator.SlowShoot;
 import frc.robot.generated.DrivetrainConfigs;
 import frc.robot.subsystems.AlgaeArm;
 import frc.robot.subsystems.Climber;
@@ -68,7 +71,7 @@ public class RobotContainer {
                                                                                       // max angular velocity
 
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.03).withRotationalDeadband(MaxAngularRate * 0.03) // Add a 10% deadband
+            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
     private final SwerveRequest.RobotCentric driveRobotCentric = new SwerveRequest.RobotCentric()
@@ -86,8 +89,8 @@ public class RobotContainer {
     /* Other subsystem Initializations */
     public final Elevator elevator = new Elevator();
     public final Manipulator manipulator = new Manipulator();
-    public final AlgaeArm algaeArm = new AlgaeArm();
-    public final Climber climber = new Climber();
+    //public final AlgaeArm algaeArm = AlgaeArm.getInstance();
+    // public final Climber climber = new Climber();
     private Vision m_Vision = new Vision();
 
 
@@ -107,7 +110,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Shoot", new Shoot(manipulator));
         NamedCommands.registerCommand("Intake", new Intake(manipulator).andThen(new BackCoralToSensor(manipulator)));
         NamedCommands.registerCommand("BackUpCoral", new BackCoralToSensor(manipulator));
-        NamedCommands.registerCommand("Remove Algae", new ActivateAlgaeArm(algaeArm, elevator));
+        //NamedCommands.registerCommand("Remove Algae", new ActivateAlgaeArm(algaeArm, elevator));
         NamedCommands.registerCommand("Level1", new SetElevatorLevel(elevator, Constants.Elevator.l1Height));
         NamedCommands.registerCommand("Level2", new SetElevatorLevel(elevator, Constants.Elevator.l2Height));
         NamedCommands.registerCommand("Level3", new SetElevatorLevel(elevator, Constants.Elevator.l3Height));
@@ -118,12 +121,13 @@ public class RobotContainer {
         NamedCommands.registerCommand("Back to coral station left", new BackToCoralStation(drivetrain, drivetrainTargetAngle, MaxSpeed, false));
         NamedCommands.registerCommand("Intake Move Out", new AutoStartIntake(manipulator));
         NamedCommands.registerCommand("Wait For Elevator",new WaitForElevator(elevator));
+        NamedCommands.registerCommand("Back Up", new BackUp(drivetrain, 0.2));
         
 
         // Configure Bindings
         configureBindings();
 
-        // Read Selected Autonomous
+        // Read Selected Autonomous 
         autoChooser = new SendableChooser<Command>();
 
         autoChooser.setDefaultOption("Do Nothing", new PrintCommand("Nothing!"));
@@ -133,6 +137,9 @@ public class RobotContainer {
         autoChooser.addOption("Drive Straight Right",new PathPlannerAuto("Drive Straight Right"));
         autoChooser.addOption("Drive Straight Center", new PathPlannerAuto("Drive Straight Center"));
         autoChooser.addOption("Three Piece Right", new PathPlannerAuto("Three Piece Auto"));
+        autoChooser.addOption("Drive and Align Right", new PathPlannerAuto("Drive Straight Align Right"));
+        autoChooser.addOption("Drive and Align Left", new PathPlannerAuto("Drive Straight Align Left"));
+        autoChooser.addOption("Back Up Test", new BackUp(drivetrain, 0.2));
 
         SmartDashboard.putData("Auto Mode", autoChooser);
     }
@@ -153,9 +160,10 @@ public class RobotContainer {
         // Start Button  - Reverse Shooter Motors 
         operatorJoystick.leftTrigger().onTrue(new Intake(manipulator).andThen(new BackCoralToSensor(manipulator)));
         operatorJoystick.rightTrigger().or(joystick.rightBumper()).onTrue(new Shoot(manipulator));
-        operatorJoystick.povUp().or(operatorJoystick.povUpLeft().or(operatorJoystick.povUpRight()));
-        // operatorJoystick.rightBumper().onTrue(new ActivateAlgaeArm(algaeArm, elevator));
-        // operatorJoystick.leftBumper().onTrue(new DeactivateAlgaeArm(algaeArm));
+        joystick.povUp().or(joystick.povUpLeft().or(joystick.povUpRight())).onTrue(new SlowShoot(manipulator));
+        operatorJoystick.povUp().or(operatorJoystick.povUpLeft()).or(operatorJoystick.povUpRight()).whileTrue(new InchForwardCoral(manipulator));
+        //operatorJoystick.rightBumper().onTrue(new ActivateAlgaeArm(algaeArm, elevator));
+        //operatorJoystick.leftBumper().onTrue(new DeactivateAlgaeArm(algaeArm));
         operatorJoystick.start().whileTrue(new ShooterReverse(manipulator)); // bindings interfere with elevator SysID bindings, normally not a problem
 
         /** 
@@ -173,7 +181,7 @@ public class RobotContainer {
              * Climber Controls
              * Womp Womp
              */
-            climber.setDefaultCommand(new RunClimber(climber, operatorJoystick::getRightY));
+            // climber.setDefaultCommand(new RunClimber(climber, operatorJoystick::getRightY));
         }
         
 
@@ -223,7 +231,8 @@ public class RobotContainer {
                 drivetrain.applyRequest(() -> drive
                         .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed * 0.3)
                         .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed * 0.3)
-                        .withRotationalRate(-angle_Limiter.calculate(joystick.getRightX()) * MaxAngularRate * 0.3)));
+                        .withRotationalRate(-angle_Limiter.calculate(joystick.getRightX()) * MaxAngularRate * 0.3)
+                        .withRotationalDeadband(MaxAngularRate * 0.03)));
 
 
         /**
@@ -272,38 +281,38 @@ public class RobotContainer {
      **/
     private void configureFieldOrientedWithConstantAngleBindings() {
         joystick.x().and(joystick.a()).debounce(Constants.Controller.debounce).onTrue(
-            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.angle_LeftCloseReef)
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.correctForAlliance(Constants.Field.angle_LeftCloseReef))
                         .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                         .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
             ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
         );
         joystick.a().and(joystick.x().negate().and(joystick.b().negate())).debounce(Constants.Controller.debounce).onTrue(
-            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.angle_MiddleCloseReef)
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.correctForAlliance(Constants.Field.angle_MiddleCloseReef))
                           .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                           .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
             ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
         );
         joystick.a().and(joystick.b()).debounce(Constants.Controller.debounce).onTrue(
-            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.angle_RightCloseReef)
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.correctForAlliance(Constants.Field.angle_RightCloseReef))
                          .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                          .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
             ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
         );
         joystick.y().and(joystick.x()).debounce(Constants.Controller.debounce).onTrue(
-            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.angle_LeftFarReef)
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.correctForAlliance(Constants.Field.angle_LeftFarReef))
                       .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                       .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
             ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
         );
         joystick.y().and(joystick.x().negate().and(joystick.b().negate())).debounce(Constants.Controller.debounce).onTrue(
-            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.angle_MiddleFarReef)
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.correctForAlliance(Constants.Field.angle_MiddleFarReef))
                         .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                         .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
             ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
         );
         
         joystick.y().and(joystick.b()).debounce(Constants.Controller.debounce).onTrue(
-            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.angle_RightFarReef)
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.correctForAlliance(Constants.Field.angle_RightFarReef))
                        .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                        .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
             ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
@@ -312,14 +321,14 @@ public class RobotContainer {
 
         /////////////////////////////// loading station alignment /////////////////////////
         joystick.x().and(joystick.a().negate().and(joystick.y().negate())).debounce(Constants.Controller.debounce).onTrue(
-            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.angle_LeftCoralStation)
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.correctForAlliance(Constants.Field.angle_LeftCoralStation))
             .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
             .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
             ).until(() -> Math.abs(joystick.getRightX()) > 0.1)
         );
 
         joystick.b().and(joystick.a().negate().and(joystick.y().negate())).debounce(Constants.Controller.debounce).onTrue(
-            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.angle_RightCoralStation)
+            drivetrain.applyRequest(() -> drivetrainTargetAngle.withTargetDirection(Constants.Field.correctForAlliance(Constants.Field.angle_RightCoralStation))
                         .withVelocityX(-y_Limiter.calculate(joystick.getLeftY()) * MaxSpeed)
                         .withVelocityY(-x_Limiter.calculate(joystick.getLeftX()) * MaxSpeed) 
             ).until(() -> Math.abs(joystick.getRightX()) > 0.1)

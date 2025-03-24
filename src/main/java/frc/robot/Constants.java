@@ -1,6 +1,7 @@
 package frc.robot;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 
 public class Constants {
 
@@ -16,6 +17,14 @@ public class Constants {
 
         public static final Rotation2d angle_LeftCoralStation = Rotation2d.fromDegrees(126);
         public static final Rotation2d angle_RightCoralStation= Rotation2d.fromDegrees(234);
+
+        public static Rotation2d correctForAlliance(Rotation2d rotation) {
+            if(DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == DriverStation.Alliance.Blue) {
+                return rotation.plus(Rotation2d.k180deg);
+            }else {
+                return rotation;
+            }
+        }
     }
 
     public static final class Controller {
@@ -153,9 +162,9 @@ public class Constants {
         // elevatorBaseHeight is subtracted to find the actual distance the elevator
         // must travel. only edit the constant !!
         public static final double l1Height = -1.0 - elevatorBaseHeight;
-        public static final double l2Height = 9 - elevatorBaseHeight;
-        public static final double l3Height = 27 - elevatorBaseHeight;
-        public static final double l4Height = 51 - elevatorBaseHeight;
+        public static final double l2Height = 10 - elevatorBaseHeight;
+        public static final double l3Height = 26 - elevatorBaseHeight;
+        public static final double l4Height = 51.25 - elevatorBaseHeight;
     }
     
 

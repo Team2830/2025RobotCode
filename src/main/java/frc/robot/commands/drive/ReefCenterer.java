@@ -28,8 +28,8 @@ private Vision.LineupDirection m_Direction;
   private boolean shouldTryLineup = false;
   private boolean isLinedUp = false;
 
-  private final double rotationGain = 12.0;
-  private final double yGain = 22.2;
+  private final double rotationGain = 22.2;
+  private final double yGain = 15;
   private final double xGain = 22.2;
 
 
@@ -55,7 +55,7 @@ private Vision.LineupDirection m_Direction;
   @Override
   public void initialize() {
     shouldTryLineup = m_Vision.initializeReefLineup(m_Direction, m_drivetrain.getState().Pose);
-    m_Vision.ledOn();
+    //m_Vision.ledOn();
   }
 
   @Override
@@ -135,10 +135,14 @@ private Vision.LineupDirection m_Direction;
 
   @Override
   public void end(boolean interrupted) {
+    m_drivetrain.setControl(() ->
+        driveRobotCentric.withVelocityX(0)
+            .withVelocityY(0)
+            .withRotationalRate(0));
     if(isLinedUp) {
-      m_Vision.ledOff();
+      //m_Vision.ledOff();
     } else {
-      m_Vision.ledFlash();
+      //m_Vision.ledFlash();
     }
     
 

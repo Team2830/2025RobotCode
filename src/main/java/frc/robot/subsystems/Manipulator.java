@@ -78,6 +78,9 @@ public class Manipulator extends SubsystemBase {
     public void slowShoot() {
         shooterMotor.set(0.2);
     }
+    public void slowerShoot() {
+        shooterMotor.setVoltage(0.08 * 12);
+    }
     public void reverseIntakeMotor() {
         shooterMotor.set(-0.15);
     }
