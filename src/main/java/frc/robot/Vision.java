@@ -32,7 +32,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Vision {
     public enum LineupDirection {
         LEFT,
-        RIGHT
+        RIGHT,
+        MIDDLE
     }
 
     private PhotonCamera m_Camera = new PhotonCamera("Global_Shutter_Camera");
@@ -45,6 +46,7 @@ public class Vision {
 
     private final Translation2d LEFT_OFFSET = new Translation2d(Units.inchesToMeters(20.5), Units.inchesToMeters(-6.5));
     private final Translation2d RIGHT_OFFSET = new Translation2d(Units.inchesToMeters(20.5), Units.inchesToMeters(6.5)); 
+    private final Translation2d MIDDLE_OFFSET = new Translation2d(Units.inchesToMeters(20.5), Units.inchesToMeters(0)); 
 
     private int tagToLookAt = 0;
     private boolean usingLocalPoseEstimate = false;
@@ -109,8 +111,10 @@ public class Vision {
                 
                 if(direction == LineupDirection.LEFT) {
                     m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(LEFT_OFFSET, Rotation2d.k180deg)));
-                } else {
+                } else if (direction == LineupDirection.RIGHT) {
                     m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(RIGHT_OFFSET, Rotation2d.k180deg)));
+                } else {
+                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(MIDDLE_OFFSET, Rotation2d.k180deg)));
                 }
 
                 usingLocalPoseEstimate = true;

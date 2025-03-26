@@ -110,6 +110,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Shoot", new Shoot(manipulator));
         NamedCommands.registerCommand("Intake", new Intake(manipulator).andThen(new BackCoralToSensor(manipulator)));
         NamedCommands.registerCommand("BackUpCoral", new BackCoralToSensor(manipulator));
+        NamedCommands.registerCommand("Slow Shoot", new SlowShoot(manipulator));
         //NamedCommands.registerCommand("Remove Algae", new ActivateAlgaeArm(algaeArm, elevator));
         NamedCommands.registerCommand("Level1", new SetElevatorLevel(elevator, Constants.Elevator.l1Height));
         NamedCommands.registerCommand("Level2", new SetElevatorLevel(elevator, Constants.Elevator.l2Height));
@@ -117,6 +118,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Level4", new SetElevatorLevel(elevator, Constants.Elevator.l4Height));
         NamedCommands.registerCommand("Auto Align Left", new ReefCenterer(drivetrain, driveRobotCentric, m_Vision, Vision.LineupDirection.LEFT));
         NamedCommands.registerCommand("Auto Align Right", new ReefCenterer(drivetrain, driveRobotCentric, m_Vision, Vision.LineupDirection.RIGHT));
+        NamedCommands.registerCommand("Auto Align Middle", new ReefCenterer(drivetrain, driveRobotCentric, m_Vision, Vision.LineupDirection.MIDDLE));
         NamedCommands.registerCommand("Back to coral station right", new BackToCoralStation(drivetrain, drivetrainTargetAngle, MaxSpeed, true));
         NamedCommands.registerCommand("Back to coral station left", new BackToCoralStation(drivetrain, drivetrainTargetAngle, MaxSpeed, false));
         NamedCommands.registerCommand("Intake Move Out", new AutoStartIntake(manipulator));
@@ -139,6 +141,8 @@ public class RobotContainer {
         autoChooser.addOption("Three Piece Right", new PathPlannerAuto("Three Piece Auto"));
         autoChooser.addOption("Drive and Align Right", new PathPlannerAuto("Drive Straight Align Right"));
         autoChooser.addOption("Drive and Align Left", new PathPlannerAuto("Drive Straight Align Left"));
+        autoChooser.addOption("Right RP Auto",new PathPlannerAuto("Right RP Auto"));
+        autoChooser.addOption("Left RP Auto",new PathPlannerAuto("Right RP Auto", true));
         autoChooser.addOption("Back Up Test", new BackUp(drivetrain, 0.2));
 
         SmartDashboard.putData("Auto Mode", autoChooser);

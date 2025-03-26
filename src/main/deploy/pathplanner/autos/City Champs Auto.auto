@@ -7,7 +7,7 @@
         {
           "type": "named",
           "data": {
-            "name": "L4"
+            "name": null
           }
         },
         {
@@ -51,7 +51,7 @@
         {
           "type": "named",
           "data": {
-            "name": "L1"
+            "name": null
           }
         },
         {
