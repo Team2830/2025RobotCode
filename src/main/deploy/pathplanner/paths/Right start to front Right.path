@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.504303278688524,
-        "y": 0.9561475409836078
+        "x": 7.636,
+        "y": 0.8
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.756749999999999,
-        "y": 0.905
+        "x": 6.917928567157384,
+        "y": 0.8614989356866407
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Far Cage Lined up"
     },
     {
       "anchor": {
-        "x": 6.041803278688524,
-        "y": 0.9561475409836078
+        "x": 3.728176229508197,
+        "y": 2.2867827868852464
       },
       "prevControl": {
-        "x": 5.658196721311475,
-        "y": 1.0280737704918033
+        "x": 4.798211850144478,
+        "y": 1.766834975312879
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Front Right"
     }
   ],
   "rotationTargets": [],
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 59.99999999999999
   },
   "reversed": false,
   "folder": null,

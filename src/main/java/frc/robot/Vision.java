@@ -36,11 +36,16 @@ public class Vision {
         MIDDLE
     }
 
-    private PhotonCamera m_Camera = new PhotonCamera("Global_Shutter_Camera");
-    public final Transform3d robotToCam = new Transform3d(new Translation3d(Units.inchesToMeters(9.237), Units.inchesToMeters(0), Units.inchesToMeters(7.851)), new Rotation3d());
+    private PhotonCamera m_LeftCamera = new PhotonCamera("Global_Shutter_Camera");
+    private PhotonCamera m_RightCamera = new PhotonCamera("Arducam_OV9281_USB_Camera");
+    public final Transform3d robotToCamLeft = new Transform3d(new Translation3d(Units.inchesToMeters(7.6541), Units.inchesToMeters(10.415526), Units.inchesToMeters(9.2487)), new Rotation3d(0, Units.degreesToRadians(5.32), Units.degreesToRadians(-19.92)));
+    public final Transform3d robotToCamRight = new Transform3d(new Translation3d(Units.inchesToMeters(7.6541), Units.inchesToMeters(-10.415526), Units.inchesToMeters(9.2487)), new Rotation3d(0, Units.degreesToRadians(5.32), Units.degreesToRadians(19.92)));
     private final AprilTagFieldLayout m_Field = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
-    private PhotonPoseEstimator m_GlobalPoseEstimator = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCam);
-    private PhotonPoseEstimator m_LocalPoseEstimator = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCam);
+    private PhotonPoseEstimator m_GlobalPoseEstimatorLeftCamera = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCamLeft);
+    private PhotonPoseEstimator m_GlobalPoseEstimatorRightCamera = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCamRight);
+    private PhotonPoseEstimator m_LocalPoseEstimatorLeftCamera = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCamLeft);
+    private PhotonPoseEstimator m_LocalPoseEstimatorRightCamera = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCamRight);
+
     private Pose3d m_RelevantTagLocation;
     private Pose3d m_GoalLocation;
 
@@ -51,8 +56,11 @@ public class Vision {
     private int tagToLookAt = 0;
     private boolean usingLocalPoseEstimate = false;
 
+    private LineupDirection currentLineupDirection = LineupDirection.MIDDLE;
+
     public Vision() {
-        m_Camera.setPipelineIndex(0);
+        m_LeftCamera.setPipelineIndex(0);
+        m_RightCamera.setPipelineIndex(0);
     }
 
     public boolean isUsingLocalPoseEstimate() {
@@ -61,20 +69,34 @@ public class Vision {
 
     // TODO: This can still be optimized to eliminate situations where we look at the wrong tag
     // Can return null if there is not a suitable target
-    private PhotonTrackedTarget getTarget(PhotonPipelineResult result, Pose2d drivetrainPose) {
+    private PhotonTrackedTarget getTarget(PhotonPipelineResult leftResult, PhotonPipelineResult rightResult, Pose2d drivetrainPose) {
         PhotonTrackedTarget bestTarget = null;
         double bestAngleDifference = 45; // Kevin's favorite number
         
-        for(PhotonTrackedTarget currentTarget : result.getTargets()) {
-            Rotation2d currentAngleDifference = drivetrainPose.getRotation().rotateBy(Rotation2d.k180deg).minus(m_Field.getTagPose(currentTarget.getFiducialId()).get().getRotation().toRotation2d());
-            double angleDifferenceDouble = currentAngleDifference.getDegrees();
+        if(leftResult != null) {
+            for(PhotonTrackedTarget currentTarget : leftResult.getTargets()) {
+                Rotation2d currentAngleDifference = drivetrainPose.getRotation().rotateBy(Rotation2d.k180deg).minus(m_Field.getTagPose(currentTarget.getFiducialId()).get().getRotation().toRotation2d());
+                double angleDifferenceDouble = currentAngleDifference.getDegrees();
 
-            if(Math.abs(angleDifferenceDouble) < bestAngleDifference && Math.abs(angleDifferenceDouble) < 30) {
-                bestAngleDifference = Math.abs(angleDifferenceDouble);
-                bestTarget = currentTarget;
+                if(Math.abs(angleDifferenceDouble) < bestAngleDifference && Math.abs(angleDifferenceDouble) < 30) {
+                    bestAngleDifference = Math.abs(angleDifferenceDouble);
+                    bestTarget = currentTarget;
+                }
             }
         }
 
+        if(rightResult != null) {
+            for(PhotonTrackedTarget currentTarget : rightResult.getTargets()) {
+                Rotation2d currentAngleDifference = drivetrainPose.getRotation().rotateBy(Rotation2d.k180deg).minus(m_Field.getTagPose(currentTarget.getFiducialId()).get().getRotation().toRotation2d());
+                double angleDifferenceDouble = currentAngleDifference.getDegrees();
+
+                if(Math.abs(angleDifferenceDouble) < bestAngleDifference && Math.abs(angleDifferenceDouble) < 30) {
+                    bestAngleDifference = Math.abs(angleDifferenceDouble);
+                    bestTarget = currentTarget;
+                }
+            }
+        }
+        
         return bestTarget;
     }
 
@@ -89,68 +111,108 @@ public class Vision {
      * @return Whether an AprilTag was seen to lineup to.
      */
     public boolean initializeReefLineup(LineupDirection direction, Pose2d drivetrainPose) {
+        this.currentLineupDirection = direction;
 
-        List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
+        List<PhotonPipelineResult> leftResults = m_LeftCamera.getAllUnreadResults();
+        List<PhotonPipelineResult> rightResults = m_RightCamera.getAllUnreadResults();
         
-        if( ! results.isEmpty()) {
-            PhotonPipelineResult result = results.get(results.size() - 1);
-            
-            try {
-                m_LocalPoseEstimator.update(result);
-                PhotonTrackedTarget target = getTarget(result, drivetrainPose);
-                if(target != null) {
-                    tagToLookAt = target.getFiducialId();
-                } else {
-                    return false;
-                }
-                
-                m_RelevantTagLocation = m_Field.getTagPose(tagToLookAt).get();
-                
-                SmartDashboard.putNumber("Initial Tag Pose", m_RelevantTagLocation.getRotation().toRotation2d().getDegrees());
-                SmartDashboard.putNumber("Rotated Rotation", Rotation2d.fromDegrees(m_RelevantTagLocation.getRotation().toRotation2d().getDegrees() + 180).getDegrees());
-                
-                if(direction == LineupDirection.LEFT) {
-                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(LEFT_OFFSET, Rotation2d.k180deg)));
-                } else if (direction == LineupDirection.RIGHT) {
-                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(RIGHT_OFFSET, Rotation2d.k180deg)));
-                } else {
-                    m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(MIDDLE_OFFSET, Rotation2d.k180deg)));
-                }
+        PhotonPipelineResult leftResult = null;
 
-                usingLocalPoseEstimate = true;
-            } catch(Exception e) {
-                return false;
-            }
+        if(leftResults != null && ! leftResults.isEmpty()) {
+            leftResult = leftResults.get(leftResults.size() - 1);
+        }
 
-            return true;
-        } else {
+        PhotonPipelineResult rightResult = null;
+
+        if(rightResults != null && ! rightResults.isEmpty()) {
+            rightResult = rightResults.get(rightResults.size() - 1);
+        }
+        
+        if(leftResult == null && rightResult == null) {
             return false;
         }
+
+        try {
+            if(leftResult != null) {
+                m_LocalPoseEstimatorLeftCamera.update(leftResult);
+            }
+
+            if(rightResult != null) {
+                m_LocalPoseEstimatorRightCamera.update(rightResult);
+            }
+            
+            PhotonTrackedTarget target = getTarget(leftResult, rightResult, drivetrainPose);
+
+            if(target != null) {
+                tagToLookAt = target.getFiducialId();
+            } else {
+                return false;
+            }
+            
+            m_RelevantTagLocation = m_Field.getTagPose(tagToLookAt).get();
+            
+            SmartDashboard.putNumber("Initial Tag Pose", m_RelevantTagLocation.getRotation().toRotation2d().getDegrees());
+            SmartDashboard.putNumber("Rotated Rotation", Rotation2d.fromDegrees(m_RelevantTagLocation.getRotation().toRotation2d().getDegrees() + 180).getDegrees());
+            
+            if(direction == LineupDirection.LEFT) {
+                m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(LEFT_OFFSET, Rotation2d.k180deg)));
+            } else if (direction == LineupDirection.RIGHT) {
+                m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(RIGHT_OFFSET, Rotation2d.k180deg)));
+            } else {
+                m_GoalLocation = m_RelevantTagLocation.plus(new Transform3d(new Transform2d(MIDDLE_OFFSET, Rotation2d.k180deg)));
+            }
+
+            usingLocalPoseEstimate = true;
+        } catch(Exception e) {
+            return false;
+        }
+
+        return true;
     }
 
     public EstimatedRobotPose getEstimatedLocalPose() {
-        List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
-        
-        if( ! results.isEmpty()) {
-            PhotonPipelineResult result = results.get(results.size() - 1);
+        List<PhotonPipelineResult> leftResults = m_LeftCamera.getAllUnreadResults();
+        List<PhotonPipelineResult> rightResults = m_RightCamera.getAllUnreadResults();
 
-            if( ! result.hasTargets()) {
-                return null;
+        PhotonPipelineResult leftResult = null;
+        PhotonPipelineResult rightResult = null;
+        Optional<EstimatedRobotPose> leftEstimatedPose = null;
+        Optional<EstimatedRobotPose> rightEstimatedPose = null;
+
+        if(leftResults != null && ! leftResults.isEmpty()) {
+            leftResult = leftResults.get(leftResults.size() - 1);
+
+            if((leftResult.getBestTarget() != null) && (leftResult.getBestTarget().getFiducialId() == tagToLookAt)) {                
+                leftEstimatedPose = m_LocalPoseEstimatorLeftCamera.update(leftResult);
             }
+        }
 
-            if(result.getBestTarget().getFiducialId() == tagToLookAt) {                
-                Optional<EstimatedRobotPose> estimatedPose = m_LocalPoseEstimator.update(result);
-            
-                if(estimatedPose.isPresent()) {
-                    return estimatedPose.get();
-                } else {
-                    return null;
-                }
+        if(rightResults != null && ! rightResults.isEmpty()) {
+            rightResult = rightResults.get(rightResults.size() - 1);
+
+            if((rightResult.getBestTarget() != null) && rightResult.getBestTarget().getFiducialId() == tagToLookAt) {                
+                rightEstimatedPose = m_LocalPoseEstimatorRightCamera.update(rightResult);
+            }
+        }
+        
+        if(this.currentLineupDirection == LineupDirection.LEFT) {
+            if(leftEstimatedPose != null && leftEstimatedPose.isPresent()) {
+                return leftEstimatedPose.get();
+            } else if(rightEstimatedPose != null && rightEstimatedPose.isPresent()) {
+                //return rightEstimatedPose.get();
+                return null;
             } else {
                 return null;
             }
         } else {
-            return null;
+            if(rightEstimatedPose != null && rightEstimatedPose.isPresent()) {
+                return rightEstimatedPose.get();
+            } else if(leftEstimatedPose != null && leftEstimatedPose.isPresent()) {
+                //return leftEstimatedPose.get();
+                return null;
+            } else {
+                return null;
+            }
         }
     }
 
@@ -171,83 +233,87 @@ public class Vision {
     }
 
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d previousEstimatedRobotPose) {
-        List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
+        List<PhotonPipelineResult> LeftResults = m_LeftCamera.getAllUnreadResults();
+        List<PhotonPipelineResult> RightResults = m_RightCamera.getAllUnreadResults();
+
         
-        if( ! results.isEmpty()) {
-            return m_GlobalPoseEstimator.update(results.get(results.size() - 1));
+        if(LeftResults != null && ! LeftResults.isEmpty()) {
+            return m_GlobalPoseEstimatorLeftCamera.update(LeftResults.get(LeftResults.size() - 1));
+        } else if(RightResults != null && ! RightResults.isEmpty()) {
+            return m_GlobalPoseEstimatorRightCamera.update(RightResults.get(RightResults.size() - 1));
         } else {
             return null;
         }
     }
 
     public void ledOn() {
-        m_Camera.setLED(VisionLEDMode.kOn);
+        // m_Camera.setLED(VisionLEDMode.kOn);
     }
 
     public void ledFlash() {
-        m_Camera.setLED(VisionLEDMode.kBlink);
+        // m_Camera.setLED(VisionLEDMode.kBlink);
     }
 
     public void ledOff() {
-        m_Camera.setLED(VisionLEDMode.kOff);
+        // m_Camera.setLED(VisionLEDMode.kOff);
     }
 
     public void debugVision() {
-        List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
-        if (!results.isEmpty()) {
-            var result = results.get(results.size() - 1);
-            if (result.hasTargets()) {
-                var target = result.getBestTarget();
-                SmartDashboard.putNumber("yaw left- or right+",target.getYaw());
-                SmartDashboard.putNumber("pitch up- or down+",target.getPitch());
-            }
-        }
+        // List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
+        // if (!results.isEmpty()) {
+        //     var result = results.get(results.size() - 1);
+        //     if (result.hasTargets()) {
+        //         var target = result.getBestTarget();
+        //         SmartDashboard.putNumber("yaw left- or right+",target.getYaw());
+        //         SmartDashboard.putNumber("pitch up- or down+",target.getPitch());
+        //     }
+        // }
     }
 
-    public double getClosestTargetYaw() {
-        List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
-        if (!results.isEmpty()) {
-            var result = results.get(results.size() - 1);
-            if (result.hasTargets()) {
-                var target = result.getBestTarget();
-                return target.getYaw();
-            }
-        }
-        return Integer.MAX_VALUE;
-    }
-    public double getClosestTargetPitch() {
-        List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
-        if (!results.isEmpty()) {
-            var result = results.get(results.size() - 1);
-            if (result.hasTargets()) {
-                var target = result.getBestTarget();
-                return target.getPitch();
-            }
-        }
-        return Integer.MAX_VALUE;
-    }
+    // public double getClosestTargetYaw() {
+    //     List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
+    //     if (!results.isEmpty()) {
+    //         var result = results.get(results.size() - 1);
+    //         if (result.hasTargets()) {
+    //             var target = result.getBestTarget();
+    //             return target.getYaw();
+    //         }
+    //     }
+    //     return Integer.MAX_VALUE;
+    // }
+    // public double getClosestTargetPitch() {
+    //     List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
+    //     if (!results.isEmpty()) {
+    //         var result = results.get(results.size() - 1);
+    //         if (result.hasTargets()) {
+    //             var target = result.getBestTarget();
+    //             return target.getPitch();
+    //         }
+    //     }
+    //     return Integer.MAX_VALUE;
+    // }
 
-    public double getRobotCentricRotToTarget() {
-        boolean targetVisible = false;
-        double targetYaw = 0.0;
+    // public double getRobotCentricRotToTarget() {
+    //     boolean targetVisible = false;
+    //     double targetYaw = 0.0;
 
-        List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
-        if (!results.isEmpty()) {
-            var result = results.get(results.size() - 1);
-            if (result.hasTargets()) {
-                // At least one AprilTag was seen by the camera
-                for (var target : result.getTargets()) {
-                    if (target.getFiducialId() == 7) {
-                        // Found Tag 7, record its information
-                        targetYaw = target.getYaw();
-                        targetVisible = true;
-                    }
-                }
-            }
-        }
+    //     List<PhotonPipelineResult> results = m_Camera.getAllUnreadResults();
+    //     if (!results.isEmpty()) {
+    //         var result = results.get(results.size() - 1);
+    //         if (result.hasTargets()) {
+    //             // At least one AprilTag was seen by the camera
+    //             for (var target : result.getTargets()) {
+    //                 if (target.getFiducialId() == 7) {
+    //                     // Found Tag 7, record its information
+    //                     targetYaw = target.getYaw();
+    //                     targetVisible = true;
+    //                 }
+    //             }
+    //         }
+    //     }
 
-        return (-1.0 * targetYaw);
-    }
+    //     return (-1.0 * targetYaw);
+    // }
 
     
 }

@@ -15,8 +15,8 @@ public class Climber extends SubsystemBase {
 
   private SparkMax motor = new SparkMax(Constants.ClimberConstants.climberMotor, MotorType.kBrushless);
   private Servo ratchetServo = new Servo(2);
-  private Servo frontTrapDoorServo = new Servo(1);
-  private Servo backTrapDoorServo = new Servo(0);
+  private Servo climberServo = new Servo(1);
+  private Servo trapDoorServo = new Servo(0);
 
   /** Creates a new Climber. */
   public Climber() {}
@@ -27,23 +27,34 @@ public class Climber extends SubsystemBase {
   }
 
   public void climberToSpeed(double speed){
+    if (Math.abs(speed) < 0.3) {
+      speed = 0;
+    }
+    // positive speeds climb
+    // neg speeds let climber back out
+    // hit latch when speed negative
     motor.set(speed);
 
-    if(speed > 0.1){
-      ratchetServo.setAngle(Constants.ClimberConstants.ratchetUnlockedAngle);
+    if(speed < 0){
+      ratchetServo.setAngle(49);
     } else {
-      ratchetServo.setAngle(Constants.ClimberConstants.ratchedLockedAngle);
+      ratchetServo.setAngle(90);
     }
   }
 
   public void lockTrapDoor(){
-    frontTrapDoorServo.setAngle(Constants.ClimberConstants.frontLockedAngle);
-    backTrapDoorServo.setAngle(Constants.ClimberConstants.backLockedAngle);
+    trapDoorServo.setAngle(Constants.ClimberConstants.lockedAngle);
   }
 
   public void releaseTrapDoor(){
-    frontTrapDoorServo.setAngle(Constants.ClimberConstants.frontReleasedAngle);
-    frontTrapDoorServo.setAngle(Constants.ClimberConstants.backReleasedAngle);
+    trapDoorServo.setAngle(Constants.ClimberConstants.unlockedBackAngle);
+  }
+
+  public void releaseClimber(){
+    climberServo.setAngle(90);
+  }
+  public void resetClimber(){
+    climberServo.setAngle(0);
   }
 }
 

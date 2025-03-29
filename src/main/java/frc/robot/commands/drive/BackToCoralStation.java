@@ -16,7 +16,7 @@ public class BackToCoralStation extends Command {
 
   private Timer m_Timer = new Timer();
 
-  private static final double speed = 0.4;
+  private static final double speed = 0.2;
  
   public BackToCoralStation(CommandSwerveDrivetrain driveTrain, ProfiledFieldCentricFacingAngle driveTrainTargetAngle, double MaxSpeed, boolean isRight) {
     this.m_driveTrain = driveTrain;

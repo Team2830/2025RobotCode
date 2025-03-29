@@ -11,6 +11,7 @@ import org.photonvision.EstimatedRobotPose;
 import com.ctre.phoenix6.Utils;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -49,6 +50,19 @@ public class Robot extends TimedRobot {
 
         if(estimatedPose != null && estimatedPose.isPresent() && ! m_Vision.isUsingLocalPoseEstimate()) {
           m_robotContainer.drivetrain.addVisionMeasurement(estimatedPose.get().estimatedPose.toPose2d(), Utils.fpgaToCurrentTime(estimatedPose.get().timestampSeconds));
+          var alliance = DriverStation.getAlliance();
+          if (alliance.isPresent()) {
+            if (alliance.get() == DriverStation.Alliance.Blue) {
+                if (m_robotContainer.MaxSpeed > 0) {
+                m_robotContainer.MaxSpeed = m_robotContainer.MaxSpeed * -1;
+                }
+            }
+            else {
+              if (m_robotContainer.MaxSpeed < 0) {
+                m_robotContainer.MaxSpeed = m_robotContainer.MaxSpeed * -1;
+              }
+            }
+        }
         }
         
         m_field.setRobotPose(m_robotContainer.drivetrain.getState().Pose);
@@ -103,7 +117,6 @@ public class Robot extends TimedRobot {
         m_robotContainer.MaxSpeed = m_robotContainer.MaxSpeed * -1;
       }
     }
-
     
   }
 

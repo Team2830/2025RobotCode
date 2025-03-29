@@ -26,6 +26,8 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commands.LockTrapDoor;
+import frc.robot.commands.ReleaseTrapDoor;
 import frc.robot.commands.RunClimber;
 import frc.robot.commands.drive.BackToCoralStation;
 import frc.robot.commands.drive.BackUp;
@@ -90,7 +92,7 @@ public class RobotContainer {
     public final Elevator elevator = new Elevator();
     public final Manipulator manipulator = new Manipulator();
     //public final AlgaeArm algaeArm = AlgaeArm.getInstance();
-    // public final Climber climber = new Climber();
+    public final Climber climber = new Climber();
     private Vision m_Vision = new Vision();
 
 
@@ -133,8 +135,8 @@ public class RobotContainer {
         autoChooser = new SendableChooser<Command>();
 
         autoChooser.setDefaultOption("Do Nothing", new PrintCommand("Nothing!"));
-        autoChooser.addOption("Two Piece Right", new PathPlannerAuto("Two piece auto"));
-        autoChooser.addOption("Two Piece Left", new PathPlannerAuto("Mirrored 2 piece", true));
+        autoChooser.addOption("Two Piece Right", new PathPlannerAuto("Right two piece auto"));
+        autoChooser.addOption("Two Piece Left", new PathPlannerAuto("Left 2 piece auto (mirrored)", true));
         autoChooser.addOption("Drive Straight Left", new PathPlannerAuto( "Drive Straight Left"));
         autoChooser.addOption("Drive Straight Right",new PathPlannerAuto("Drive Straight Right"));
         autoChooser.addOption("Drive Straight Center", new PathPlannerAuto("Drive Straight Center"));
@@ -144,6 +146,7 @@ public class RobotContainer {
         autoChooser.addOption("Right RP Auto",new PathPlannerAuto("Right RP Auto"));
         autoChooser.addOption("Left RP Auto",new PathPlannerAuto("Right RP Auto", true));
         autoChooser.addOption("Back Up Test", new BackUp(drivetrain, 0.2));
+        autoChooser.addOption("2 piece test", new PathPlannerAuto("Two piece auto test mode", true));
 
         SmartDashboard.putData("Auto Mode", autoChooser);
     }
@@ -166,6 +169,8 @@ public class RobotContainer {
         operatorJoystick.rightTrigger().or(joystick.rightBumper()).onTrue(new Shoot(manipulator));
         joystick.povUp().or(joystick.povUpLeft().or(joystick.povUpRight())).onTrue(new SlowShoot(manipulator));
         operatorJoystick.povUp().or(operatorJoystick.povUpLeft()).or(operatorJoystick.povUpRight()).whileTrue(new InchForwardCoral(manipulator));
+        operatorJoystick.leftBumper().onTrue(new ReleaseTrapDoor(climber));
+        operatorJoystick.rightBumper().onTrue(new LockTrapDoor(climber));
         //operatorJoystick.rightBumper().onTrue(new ActivateAlgaeArm(algaeArm, elevator));
         //operatorJoystick.leftBumper().onTrue(new DeactivateAlgaeArm(algaeArm));
         operatorJoystick.start().whileTrue(new ShooterReverse(manipulator)); // bindings interfere with elevator SysID bindings, normally not a problem
@@ -185,7 +190,7 @@ public class RobotContainer {
              * Climber Controls
              * Womp Womp
              */
-            // climber.setDefaultCommand(new RunClimber(climber, operatorJoystick::getRightY));
+            climber.setDefaultCommand(new RunClimber(climber, operatorJoystick::getRightY));
         }
         
 
@@ -355,6 +360,7 @@ public class RobotContainer {
      *                 hold the elevator in the last position in between tests
      */
     private void configureElevatorBindings(int elevatorMode) {
+        /**
         switch (elevatorMode) {
                 case 1:
                     elevator.setDefaultCommand(new ManualElevator(elevator, () -> -operatorJoystick.getLeftY()));
@@ -387,5 +393,13 @@ public class RobotContainer {
                             .whileTrue(new ManualElevator(elevator, () -> (operatorJoystick.getRightY() * -0.25)));
                     break;
             }
+            **/
+            operatorJoystick.a().onTrue(new SetElevatorLevel(elevator, Constants.Elevator.l1Height));
+            operatorJoystick.b().onTrue(new SetElevatorLevel(elevator, Constants.Elevator.l2Height));
+            operatorJoystick.x().onTrue(new SetElevatorLevel(elevator, Constants.Elevator.l3Height));
+            operatorJoystick.y().onTrue(new SetElevatorLevel(elevator, Constants.Elevator.l4Height));
+            operatorJoystick.back()
+                    .whileTrue(new ManualElevator(elevator, () -> (operatorJoystick.getRightY() * -0.25)));
+        
     }
 }
