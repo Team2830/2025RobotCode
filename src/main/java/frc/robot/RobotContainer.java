@@ -147,6 +147,11 @@ public class RobotContainer {
         autoChooser.addOption("Left RP Auto",new PathPlannerAuto("Right RP Auto", true));
         autoChooser.addOption("Back Up Test", new BackUp(drivetrain, 0.2));
         autoChooser.addOption("2 piece test", new PathPlannerAuto("Two piece auto test mode", true));
+        autoChooser.addOption("Intake First right", new PathPlannerAuto("3 pc maybe"));
+        autoChooser.addOption("Intake First left", new PathPlannerAuto("Left 3 pc maybe(mirrored)", true));
+        autoChooser.addOption("Front right 3 piece", new PathPlannerAuto("Front right 3 piece"));
+        autoChooser.addOption("Front left 3 piece", new PathPlannerAuto("Front left 3 piece(Mirrored)", true));
+        
 
         SmartDashboard.putData("Auto Mode", autoChooser);
     }

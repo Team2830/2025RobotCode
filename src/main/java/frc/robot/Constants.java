@@ -59,10 +59,10 @@ public class Constants {
         public static final int kBackRightEncoderId = 1;
 
         // Encoder Offsets (in rotations)
-        public static final double kFrontLeftEncoderOffset = -0.363037109375;
-        public static final double kFrontRightEncoderOffset = 0.462158203125;
-        public static final double kBackLeftEncoderOffset = -0.287109375;
-        public static final double kBackRightEncoderOffset = -0.04248046875;
+        public static final double kFrontLeftEncoderOffset = -0.38623046875;
+        public static final double kFrontRightEncoderOffset = 0.472412109375;
+        public static final double kBackLeftEncoderOffset = -0.294921875;
+        public static final double kBackRightEncoderOffset = -0.060546875;
 
         // Module Positions
         public static final double kFrontLeftXPos = 13.25;

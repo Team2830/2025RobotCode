@@ -5,15 +5,9 @@
     "data": {
       "commands": [
         {
-          "type": "named",
-          "data": {
-            "name": "Level1"
-          }
-        },
-        {
           "type": "path",
           "data": {
-            "pathName": "Right start to back right"
+            "pathName": "Right start to front Right"
           }
         },
         {
@@ -55,44 +49,91 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Back right to right coral station"
+            "pathName": "Front right to Coral station"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Back to coral station left"
+            "name": "Back to coral station right"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Intake Move Out"
+            "name": "Intake"
           }
         },
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "Intake"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Right Coral to Front Right"
-                }
-              }
-            ]
+            "pathName": "Right Coral to Front Right"
           }
         },
         {
           "type": "named",
           "data": {
             "name": "Auto Align Left"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Back Up"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Level4"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Level1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Front right to Coral station"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Back to coral station right"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "straighter then gabe"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Auto Align Right"
           }
         },
         {

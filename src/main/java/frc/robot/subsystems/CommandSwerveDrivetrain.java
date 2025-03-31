@@ -21,6 +21,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -245,6 +246,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     @Override
     public void periodic() {
+        SmartDashboard.putNumber("Current Module 3 Angle", this.getModules()[3].getCurrentState().angle.getDegrees());
+        SmartDashboard.putNumber("Target Module 3 Angle", this.getModules()[3].getTargetState().angle.getDegrees());
         /*
          * Update perspective if it has not been set or if robot is disabled so after initial/re-enabling
          * a perspective is set

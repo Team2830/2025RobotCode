@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.899077868852459,
-        "y": 1.1719262295081967
+        "x": 7.636,
+        "y": 0.8
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.2013278688582925,
-        "y": 1.3181762295141644
+        "x": 6.7822909553652995,
+        "y": 0.8166284335018232
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Far Cage Lined up"
     },
     {
       "anchor": {
-        "x": 3.728176229508197,
-        "y": 2.2867827868852464
+        "x": 1.7745,
+        "y": 0.95375
       },
       "prevControl": {
-        "x": 3.484426229508197,
-        "y": 2.082032786885246
+        "x": 2.900487262451498,
+        "y": 0.5514399471158292
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Front Right"
+      "linkedName": "Right Coral station"
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 59.99999999999999
+    "rotation": 54.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 54.0
+    "rotation": 180.0
   },
   "useDefaultConstraints": true
 }
