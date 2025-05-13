@@ -15,7 +15,7 @@ public class Climber extends SubsystemBase {
 
   private SparkMax motor = new SparkMax(Constants.ClimberConstants.climberMotor, MotorType.kBrushless);
   private Servo ratchetServo = new Servo(2);
-  private Servo climberServo = new Servo(1);
+  private Servo releaseServo = new Servo(1);
   private Servo trapDoorServo = new Servo(0);
 
   /** Creates a new Climber. */
@@ -51,10 +51,10 @@ public class Climber extends SubsystemBase {
   }
 
   public void releaseClimber(){
-    climberServo.setAngle(90);
+    releaseServo.setAngle(120);
   }
   public void resetClimber(){
-    climberServo.setAngle(0);
+    releaseServo.setAngle(30);
   }
 }
 

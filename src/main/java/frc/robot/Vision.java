@@ -38,8 +38,8 @@ public class Vision {
 
     private PhotonCamera m_LeftCamera = new PhotonCamera("Global_Shutter_Camera");
     private PhotonCamera m_RightCamera = new PhotonCamera("Arducam_OV9281_USB_Camera");
-    public final Transform3d robotToCamLeft = new Transform3d(new Translation3d(Units.inchesToMeters(7.6541), Units.inchesToMeters(10.415526), Units.inchesToMeters(9.2487)), new Rotation3d(0, Units.degreesToRadians(5.32), Units.degreesToRadians(-19.92)));
-    public final Transform3d robotToCamRight = new Transform3d(new Translation3d(Units.inchesToMeters(7.6541), Units.inchesToMeters(-10.415526), Units.inchesToMeters(9.2487)), new Rotation3d(0, Units.degreesToRadians(5.32), Units.degreesToRadians(19.92)));
+    public final Transform3d robotToCamLeft = new Transform3d(new Translation3d(Units.inchesToMeters(7.6541), Units.inchesToMeters(10.415526), Units.inchesToMeters(14.625)), new Rotation3d(0, Units.degreesToRadians(5.32), Units.degreesToRadians(-19.92)));
+    public final Transform3d robotToCamRight = new Transform3d(new Translation3d(Units.inchesToMeters(7.6541), Units.inchesToMeters(-10.415526), Units.inchesToMeters(14.75)), new Rotation3d(0, Units.degreesToRadians(5.32), Units.degreesToRadians(19.92)));
     private final AprilTagFieldLayout m_Field = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
     private PhotonPoseEstimator m_GlobalPoseEstimatorLeftCamera = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCamLeft);
     private PhotonPoseEstimator m_GlobalPoseEstimatorRightCamera = new PhotonPoseEstimator(m_Field, PoseStrategy.LOWEST_AMBIGUITY, robotToCamRight);
@@ -239,8 +239,8 @@ public class Vision {
         
         if(LeftResults != null && ! LeftResults.isEmpty()) {
             return m_GlobalPoseEstimatorLeftCamera.update(LeftResults.get(LeftResults.size() - 1));
-        } else if(RightResults != null && ! RightResults.isEmpty()) {
-            return m_GlobalPoseEstimatorRightCamera.update(RightResults.get(RightResults.size() - 1));
+        // } else if(RightResults != null && ! RightResults.isEmpty()) {
+        //     return m_GlobalPoseEstimatorRightCamera.update(RightResults.get(RightResults.size() - 1));
         } else {
             return null;
         }

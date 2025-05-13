@@ -1,3 +1,19 @@
+/**
+Hey!!!! You Reading this!!!
+
+This is Trenton and Conors untested code for ReefCenterer.java
+that lets the robot move on a diagonal to align when within
+a tolerance (24in left/right of the target) 
+
+So if you could, paste this into ReefCenterer.java and test it!!!!
+
+Only a minor improvement so could just revert to the original
+code if it doesnt work
+
+*/
+
+
+
 package frc.robot.commands.drive;
 import org.photonvision.EstimatedRobotPose;
 
@@ -29,8 +45,8 @@ private Vision.LineupDirection m_Direction;
   private boolean isLinedUp = false;
 
   private final double rotationGain = 22.2;
-  private final double yGain = 18;
-  private final double xGain = 32;
+  private final double yGain = 22;
+  private final double xGain = 35;
 
 
   private ProfiledPIDController m_RotationController = new ProfiledPIDController(rotationGain, 0, 0, new Constraints(1.0, 1.0));
@@ -39,7 +55,7 @@ private Vision.LineupDirection m_Direction;
   private boolean foundFineRotation = false;
   private boolean foundY = false;
   private boolean foundX = false;
-
+  private boolean foundFineY= false;
   private final SwerveRequest.RobotCentric driveRobotCentric = new SwerveRequest.RobotCentric()
       .withDriveRequestType(DriveRequestType.Velocity); // Use velocity closed-loop control for drive motors
 
@@ -106,19 +122,27 @@ private Vision.LineupDirection m_Direction;
       SmartDashboard.putNumber("Y Error", Units.metersToInches(error.getY()));
     }
     
-    if (Math.abs(Units.metersToInches(error.getY())) < 0.5){
+    if (Math.abs(Units.metersToInches(error.getY())) < 24.0){
       foundY = true;
     }
-    
+    if (Math.abs(Units.metersToInches(error.getY())) < 0.5){
+      foundFineY = true;
+    } else {
+      foundFineY = false;
+    }
     if (foundRotation && foundY) {
       x = error.getX() * -xGain;
-    } 
+    }
+
+    if (! foundFineY && Units.metersToInches(Math.abs(error.getX())) < 2) {
+      x = 0;
+    }
     
     if(Math.abs(Units.metersToInches(error.getX())) < 0.5) {
       foundX = foundY;
     }
 
-    if(foundRotation && foundY && foundX && foundFineRotation){
+    if(foundRotation && foundY && foundX && foundFineRotation && foundFineY ){
       isLinedUp = true;
     }
 

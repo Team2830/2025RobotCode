@@ -4,33 +4,31 @@
 
 package frc.robot.commands;
 
-import java.util.function.DoubleSupplier;
-
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Climber;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class RunClimber extends Command {
+public class ReleaseClimber extends Command {
+  /** Creates a new LockTrapDoor. */
+  private Timer timer = new Timer();
   private Climber climber;
-  private DoubleSupplier speed;
-
-  /** Creates a new RunClimber. */
-  public RunClimber(Climber climber, DoubleSupplier speed) {
+  public ReleaseClimber(Climber climber) {
     this.climber = climber;
-    this.speed = speed;
-
     addRequirements(climber);
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    timer.restart();
+    timer.start();
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    climber.climberToSpeed(speed.getAsDouble());
-    climber.resetClimber();
+    climber.releaseClimber();
   }
 
   // Called once the command ends or is interrupted.
@@ -40,6 +38,6 @@ public class RunClimber extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return timer.hasElapsed(2);
   }
 }

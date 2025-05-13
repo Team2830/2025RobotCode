@@ -159,12 +159,12 @@ public class Constants {
 
         // the constant value in each variable below is the height the base of the
         // carridge should go to for that level.
-        // elevatorBaseHeight is subtracted to find the actual distance the elevator
+        // elevatorBaseHeight is subtracted to find the actual d*istance the elevator
         // must travel. only edit the constant !!
         public static final double l1Height = -1.0 - elevatorBaseHeight;
         public static final double l2Height = 10 - elevatorBaseHeight;
         public static final double l3Height = 26 - elevatorBaseHeight;
-        public static final double l4Height = 51.25 - elevatorBaseHeight;
+        public static final double l4Height = 50.25 - elevatorBaseHeight; // was 51.25
     }
     
 

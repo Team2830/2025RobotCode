@@ -23,11 +23,14 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.LockTrapDoor;
+import frc.robot.commands.ReleaseClimber;
 import frc.robot.commands.ReleaseTrapDoor;
+import frc.robot.commands.ResetClimber;
 import frc.robot.commands.RunClimber;
 import frc.robot.commands.drive.BackToCoralStation;
 import frc.robot.commands.drive.BackUp;
@@ -151,6 +154,7 @@ public class RobotContainer {
         autoChooser.addOption("Intake First left", new PathPlannerAuto("Left 3 pc maybe(mirrored)", true));
         autoChooser.addOption("Front right 3 piece", new PathPlannerAuto("Front right 3 piece"));
         autoChooser.addOption("Front left 3 piece", new PathPlannerAuto("Front left 3 piece(Mirrored)", true));
+        autoChooser.addOption("Center Auto", new PathPlannerAuto("Center Auto"));
         
 
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -174,8 +178,8 @@ public class RobotContainer {
         operatorJoystick.rightTrigger().or(joystick.rightBumper()).onTrue(new Shoot(manipulator));
         joystick.povUp().or(joystick.povUpLeft().or(joystick.povUpRight())).onTrue(new SlowShoot(manipulator));
         operatorJoystick.povUp().or(operatorJoystick.povUpLeft()).or(operatorJoystick.povUpRight()).whileTrue(new InchForwardCoral(manipulator));
-        operatorJoystick.leftBumper().onTrue(new ReleaseTrapDoor(climber));
-        operatorJoystick.rightBumper().onTrue(new LockTrapDoor(climber));
+        operatorJoystick.leftBumper().and(operatorJoystick.povDown().or(operatorJoystick.povDownLeft()).or(operatorJoystick.povDownRight())).onTrue(new ReleaseTrapDoor(climber).andThen(new WaitCommand(2)).andThen(new ReleaseClimber(climber)));
+        operatorJoystick.rightBumper().onTrue(new LockTrapDoor(climber).andThen(new ResetClimber(climber)));
         //operatorJoystick.rightBumper().onTrue(new ActivateAlgaeArm(algaeArm, elevator));
         //operatorJoystick.leftBumper().onTrue(new DeactivateAlgaeArm(algaeArm));
         operatorJoystick.start().whileTrue(new ShooterReverse(manipulator)); // bindings interfere with elevator SysID bindings, normally not a problem
